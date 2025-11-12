@@ -3,7 +3,11 @@
 Stellar Business Data Processing Module
 
 Downloads gzipped DATA files from S3, parses CSVs, and inserts into Oracle staging tables.
-Processes 9 core Stellar tables: customers, locations, seasons, accessories, etc.
+Processes all 29 Stellar tables including:
+- Core reference data (9 tables): customers, locations, seasons, accessories, amenities, categories, holidays
+- Booking system (4 tables): bookings, booking_boats, booking_payments, booking_accessories
+- Boat inventory & pricing (11 tables): styles, style_boats, style_groups, style_times, style_prices, etc.
+- Point of sale (5 tables): pos_items, pos_sales, fuel_sales, closed_dates, blacklists
 """
 
 import boto3
@@ -324,6 +328,819 @@ def parse_holidays_data(csv_content):
     return data_rows
 
 
+def parse_bookings_data(csv_content):
+    """Parse bookings CSV - 82 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            parse_int(row.get('customer_id')),
+            parse_int(row.get('creator_id')),
+            parse_int(row.get('admin_id')),
+            row.get('billing_firstname'),
+            row.get('billing_lastname'),
+            row.get('billing_street1'),
+            row.get('billing_street2'),
+            row.get('billing_city'),
+            row.get('billing_state'),
+            row.get('billing_country'),
+            row.get('billing_zip'),
+            row.get('cc_saved_name'),
+            parse_int(row.get('cc_saved_last4')),
+            row.get('cc_saved_profile_id'),
+            row.get('cc_saved_method_id'),
+            row.get('cc_saved_address_id'),
+            row.get('cc_preauth_id'),
+            parse_float(row.get('cc_preauth_amount')),
+            row.get('cc_connect_type'),
+            row.get('cc_connect_id'),
+            parse_float(row.get('accessories_custom_price')),
+            parse_float(row.get('accessories_total')),
+            parse_float(row.get('insurance')),
+            parse_float(row.get('pets')),
+            parse_float(row.get('parking')),
+            parse_int(row.get('parking_override')),
+            parse_float(row.get('boats_total')),
+            parse_float(row.get('pos_total')),
+            parse_int(row.get('use_club_credits')),
+            parse_int(row.get('no_show_fee')),
+            parse_int(row.get('cancellation_fee')),
+            parse_float(row.get('club_fees')),
+            parse_int(row.get('club_fees_override')),
+            parse_float(row.get('subtotal')),
+            parse_float(row.get('convenience_fee')),
+            parse_int(row.get('convenience_fee_waived')),
+            parse_float(row.get('internal_application_fee')),
+            parse_float(row.get('tax_1')),
+            parse_int(row.get('tax_1_exempt')),
+            parse_float(row.get('tax_1_rate_override')),
+            parse_float(row.get('tax_2')),
+            parse_int(row.get('tax_2_exempt')),
+            parse_float(row.get('checkin_tax_1')),
+            parse_float(row.get('checkin_tax_2')),
+            parse_float(row.get('checkin_total')),
+            parse_float(row.get('deposit_total')),
+            parse_int(row.get('deposit_override')),
+            parse_int(row.get('deposit_waived')),
+            parse_float(row.get('gratuity')),
+            parse_float(row.get('grand_total')),
+            parse_float(row.get('adjustment_total')),
+            parse_float(row.get('amount_paid')),
+            row.get('notes'),
+            row.get('notes_contract'),
+            row.get('notes_from_customer'),
+            row.get('notes_from_customer_contract'),
+            row.get('notes_for_customer'),
+            row.get('notes_for_customer_contract'),
+            row.get('frontend'),
+            row.get('is_on_hold'),
+            row.get('is_locked'),
+            row.get('is_finalized'),
+            row.get('is_canceled'),
+            row.get('override_turnaround_time'),
+            row.get('cancellation_type'),
+            row.get('bypass_club_restrictions'),
+            row.get('renters_insurance_interest'),
+            parse_int(row.get('coupon_id')),
+            row.get('coupon_type'),
+            parse_float(row.get('coupon_amount')),
+            parse_float(row.get('discount_total')),
+            parse_int(row.get('agent_id')),
+            row.get('agent_name'),
+            row.get('referrer_id'),
+            parse_int(row.get('safety_reminder')),
+            parse_int(row.get('deleted_admin_id')),
+            row.get('created_at'),
+            row.get('updated_at'),
+            row.get('finalized_at'),
+            row.get('deleted_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} booking records")
+    return data_rows
+
+
+def parse_booking_boats_data(csv_content):
+    """Parse booking_boats CSV - 57 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('booking_id')),
+            parse_int(row.get('style_id')),
+            row.get('boat_id'),
+            row.get('time_id'),
+            parse_int(row.get('timeframe_id')),
+            parse_int(row.get('main_boat')),
+            parse_int(row.get('num_passengers')),
+            row.get('boat_departure'),
+            row.get('boat_return'),
+            row.get('status'),
+            parse_float(row.get('price')),
+            parse_int(row.get('price_override')),
+            row.get('signature_date'),
+            row.get('checkout_date'),
+            row.get('checkout_equipment'),
+            row.get('checkout_notes'),
+            parse_float(row.get('checkout_engine_hours')),
+            row.get('checkin_date'),
+            row.get('checkin_equipment'),
+            row.get('checkin_notes'),
+            parse_float(row.get('checkin_engine_hours')),
+            parse_float(row.get('checkin_hours')),
+            parse_float(row.get('checkin_deposit')),
+            parse_float(row.get('checkin_weather')),
+            parse_float(row.get('checkin_late')),
+            parse_float(row.get('checkin_miscnontax')),
+            parse_float(row.get('checkin_misctax')),
+            parse_float(row.get('checkin_cleaning')),
+            parse_float(row.get('checkin_gallons')),
+            parse_float(row.get('checkin_fuel')),
+            parse_float(row.get('checkin_diesel_gallons')),
+            parse_float(row.get('checkin_diesel')),
+            parse_float(row.get('checkin_tip')),
+            parse_float(row.get('checkin_tax_1')),
+            parse_float(row.get('checkin_tax_2')),
+            parse_float(row.get('checkin_total')),
+            parse_int(row.get('queue_admin_id')),
+            row.get('queue_date'),
+            parse_int(row.get('attendant_queue_admin_id')),
+            parse_int(row.get('attendant_water_admin_id')),
+            parse_int(row.get('boat_assigned')),
+            parse_int(row.get('addl_drivers')),
+            row.get('addl_driver_names'),
+            parse_int(row.get('accessories_migrated')),
+            parse_int(row.get('price_rule_id')),
+            parse_float(row.get('price_rule_original_price')),
+            parse_float(row.get('price_rule_dynamic_price')),
+            parse_float(row.get('price_rule_difference')),
+            row.get('emergencyname'),
+            row.get('emergencyphone'),
+            row.get('dob'),
+            row.get('contract_return_pdf'),
+            row.get('contract_pdf'),
+            row.get('created_at'),
+            row.get('updated_at'),
+            row.get('deleted_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} booking boat records")
+    return data_rows
+
+
+def parse_booking_payments_data(csv_content):
+    """Parse booking_payments CSV - 56 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('booking_id')),
+            parse_int(row.get('customer_id')),
+            parse_int(row.get('admin_id')),
+            parse_int(row.get('frontend')),
+            row.get('payment_for'),
+            row.get('payment_type'),
+            row.get('card_type'),
+            parse_float(row.get('payment_total')),
+            parse_float(row.get('cash_total')),
+            parse_float(row.get('credit_total')),
+            parse_float(row.get('agent_ar_total')),
+            row.get('credit_last4'),
+            row.get('credit_expiry'),
+            row.get('billing_firstname'),
+            row.get('billing_lastname'),
+            row.get('billing_street1'),
+            row.get('billing_street2'),
+            row.get('billing_city'),
+            row.get('billing_state'),
+            row.get('billing_country'),
+            row.get('billing_zip'),
+            row.get('transid'),
+            parse_int(row.get('original_payment_id')),
+            row.get('status'),
+            row.get('notes'),
+            row.get('is_agent_ar'),
+            row.get('offline_type'),
+            row.get('dockmaster_ticket'),
+            row.get('mytaskit_id'),
+            parse_float(row.get('report_boats')),
+            parse_float(row.get('report_propane')),
+            parse_float(row.get('report_accessories')),
+            parse_float(row.get('report_parking')),
+            parse_float(row.get('report_insurance')),
+            parse_float(row.get('report_fuel')),
+            parse_float(row.get('report_damages')),
+            parse_float(row.get('report_cleaning')),
+            parse_float(row.get('report_late')),
+            parse_float(row.get('report_other')),
+            parse_float(row.get('report_discount')),
+            parse_float(row.get('internal_application_fee')),
+            parse_float(row.get('cc_processor_fee')),
+            row.get('cc_brand'),
+            row.get('cc_country'),
+            row.get('cc_funding'),
+            row.get('cc_connect_type'),
+            row.get('cc_connect_id'),
+            row.get('cc_payout_id'),
+            row.get('cc_payout_date'),
+            row.get('external_charge_id'),
+            parse_int(row.get('is_synced')),
+            row.get('stripe_reader_id'),
+            row.get('created_at'),
+            row.get('updated_at'),
+            row.get('deleted_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} booking payment records")
+    return data_rows
+
+
+def parse_booking_accessories_data(csv_content):
+    """Parse booking_accessories CSV - 8 columns (no ID, composite key)."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('booking_id')),
+            parse_int(row.get('accessory_id')),
+            parse_int(row.get('qty')),
+            parse_float(row.get('price')),
+            parse_int(row.get('price_override')),
+            parse_int(row.get('accessory_option_id')),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} booking accessory records")
+    return data_rows
+
+
+def parse_style_groups_data(csv_content):
+    """Parse style_groups CSV - 11 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('group_name'),
+            parse_int(row.get('frontend_max_same_departures')),
+            row.get('safety_test_enabled'),
+            row.get('safety_test_instructions'),
+            parse_float(row.get('safety_test_min_percent_pass')),
+            parse_int(row.get('safety_test_expiration_days')),
+            row.get('safety_video_link'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style group records")
+    return data_rows
+
+
+def parse_styles_data(csv_content):
+    """Parse styles CSV - 98 columns (matches database schema exactly)."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            parse_int(row.get('style_group_id')),
+            row.get('style_name'),
+            row.get('backend_display'),
+            parse_int(row.get('position')),
+            parse_float(row.get('turnaround_time')),
+            parse_float(row.get('deposit_amount')),
+            parse_float(row.get('multiday_deposit_amount')),
+            parse_float(row.get('preauth_amount')),
+            parse_float(row.get('fuel_burn_ratio')),
+            parse_float(row.get('tax_1_rate')),
+            parse_float(row.get('tax_2_rate')),
+            row.get('insurance_enabled'),
+            row.get('insurance_pricing_type'),
+            parse_float(row.get('insurance_pricing_rate')),
+            parse_float(row.get('insurance_first_day_price')),
+            row.get('gratuity_enabled'),
+            parse_float(row.get('gratuity_pricing_rate')),
+            parse_float(row.get('parking_qty_multiplier')),
+            row.get('frontend_display'),
+            row.get('frontend_name'),
+            parse_int(row.get('frontend_position')),
+            row.get('frontend_type'),
+            parse_int(row.get('frontend_qty_limit')),
+            row.get('frontend_unit_selector'),
+            row.get('frontend_partial_payment_type'),
+            parse_float(row.get('frontend_partial_payment_amount')),
+            row.get('backend_multi_day_disabled'),
+            parse_int(row.get('max_same_style_per_booking')),
+            parse_float(row.get('frontend_min_hours_advance_departure')),
+            row.get('backend_hourly_enabled'),
+            parse_float(row.get('weekday_backend_hourly_min_hours')),
+            parse_float(row.get('weekday_backend_hourly_max_hours')),
+            parse_float(row.get('weekend_backend_hourly_min_hours')),
+            parse_float(row.get('weekend_backend_hourly_max_hours')),
+            parse_float(row.get('holiday_backend_hourly_min_hours')),
+            parse_float(row.get('holiday_backend_hourly_max_hours')),
+            row.get('frontend_hourly_enabled'),
+            parse_float(row.get('weekday_frontend_hourly_min_hours')),
+            parse_float(row.get('weekday_frontend_hourly_max_hours')),
+            parse_float(row.get('weekday_frontend_hourly_time_increment')),
+            parse_float(row.get('weekday_frontend_hourly_length_increment')),
+            parse_float(row.get('weekend_frontend_hourly_min_hours')),
+            parse_float(row.get('weekend_frontend_hourly_max_hours')),
+            parse_float(row.get('weekend_frontend_hourly_time_increment')),
+            parse_float(row.get('weekend_frontend_hourly_length_increment')),
+            parse_float(row.get('holiday_frontend_hourly_min_hours')),
+            parse_float(row.get('holiday_frontend_hourly_max_hours')),
+            parse_float(row.get('holiday_frontend_hourly_time_increment')),
+            parse_float(row.get('holiday_frontend_hourly_length_increment')),
+            row.get('backend_nightly_enabled'),
+            parse_float(row.get('backend_nightly_min_nights')),
+            parse_float(row.get('backend_nightly_max_nights')),
+            parse_float(row.get('backend_nightly_start')),
+            parse_float(row.get('backend_nightly_end')),
+            parse_int(row.get('backend_nightly_discount_days')),
+            row.get('backend_nightly_discount_type'),
+            parse_float(row.get('backend_nightly_discount_amount')),
+            row.get('frontend_nightly_enabled'),
+            parse_float(row.get('frontend_nightly_min_nights')),
+            parse_float(row.get('frontend_nightly_min_nights_peak')),
+            parse_float(row.get('frontend_nightly_max_nights')),
+            parse_float(row.get('frontend_nightly_start')),
+            parse_float(row.get('frontend_nightly_end')),
+            row.get('frontend_nightly_addl_times'),
+            parse_int(row.get('frontend_nightly_discount_days')),
+            row.get('frontend_nightly_discount_type'),
+            parse_float(row.get('frontend_nightly_discount_amount')),
+            row.get('image'),
+            parse_int(row.get('passengers')),
+            parse_int(row.get('weight_capacity')),
+            parse_int(row.get('horsepower')),
+            row.get('engine_type'),
+            parse_float(row.get('length')),
+            parse_float(row.get('width')),
+            parse_float(row.get('draft')),
+            parse_int(row.get('fuel_capacity')),
+            row.get('brand'),
+            row.get('model'),
+            row.get('title'),
+            row.get('description'),
+            row.get('summary'),
+            row.get('notes'),
+            row.get('video_link'),
+            row.get('smartwaiver_waiver_link'),
+            row.get('accounting_item_id'),
+            row.get('local_video_link'),
+            row.get('dockmaster_part_number'),
+            row.get('dockmaster_tax_code'),
+            row.get('end_hours'),
+            parse_float(row.get('seasonal_buffer_default_lower')),
+            parse_float(row.get('seasonal_buffer_default_upper')),
+            parse_float(row.get('seasonal_buffer_peak_lower')),
+            parse_float(row.get('seasonal_buffer_peak_upper')),
+            row.get('billable_unit_type'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style records")
+    return data_rows
+
+
+def parse_style_boats_data(csv_content):
+    """Parse style_boats CSV - 39 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('style_id')),
+            row.get('boat_number'),
+            row.get('paperless_number'),
+            row.get('motor'),
+            row.get('manufacturer'),
+            row.get('serial'),
+            row.get('in_fleet'),
+            row.get('hull_number'),
+            row.get('state_number'),
+            row.get('cylinders'),
+            row.get('hp'),
+            row.get('model'),
+            row.get('type'),
+            row.get('purchased_date'),
+            parse_float(row.get('purchased_cost')),
+            row.get('sale_date'),
+            parse_float(row.get('sale_price')),
+            row.get('club_location'),
+            row.get('dealer_name'),
+            row.get('dealer_city'),
+            row.get('dealer_state'),
+            row.get('po_number'),
+            row.get('boat_year_model'),
+            row.get('motor_year_model'),
+            row.get('motor_manufacturer_model'),
+            row.get('state_reg_date'),
+            row.get('state_reg_exp_date'),
+            parse_float(row.get('engine_purchased_cost')),
+            row.get('backend_display'),
+            parse_int(row.get('position')),
+            row.get('status'),
+            row.get('service_start'),
+            row.get('service_end'),
+            row.get('clean_status'),
+            row.get('insurance_reg_no'),
+            row.get('buoy_insurance_status'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style boat records")
+    return data_rows
+
+
+def parse_customer_boats_data(csv_content):
+    """Parse customer_boats CSV - 9 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('customer_id')),
+            parse_int(row.get('slip_id')),
+            row.get('boat_name'),
+            row.get('boat_number'),
+            parse_float(row.get('length')),
+            parse_float(row.get('width')),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} customer boat records")
+    return data_rows
+
+
+def parse_season_dates_data(csv_content):
+    """Parse season_dates CSV - 4 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('season_id')),
+            row.get('start_date'),
+            row.get('end_date')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} season date records")
+    return data_rows
+
+
+def parse_style_hourly_prices_data(csv_content):
+    """Parse style_hourly_prices CSV - 22 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('style_id')),
+            parse_int(row.get('season_id')),
+            row.get('hourly_type'),
+            parse_float(row.get('default_price')),
+            parse_float(row.get('holiday')),
+            parse_float(row.get('saturday')),
+            parse_float(row.get('sunday')),
+            parse_float(row.get('monday')),
+            parse_float(row.get('tuesday')),
+            parse_float(row.get('wednesday')),
+            parse_float(row.get('thursday')),
+            parse_float(row.get('friday')),
+            parse_float(row.get('day_discount')),
+            parse_float(row.get('under_one_hour')),
+            parse_float(row.get('first_hour_am')),
+            parse_float(row.get('first_hour_pm')),
+            parse_float(row.get('max_price')),
+            parse_float(row.get('min_hours')),
+            parse_float(row.get('max_hours')),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style hourly price records")
+    return data_rows
+
+
+def parse_style_times_data(csv_content):
+    """Parse style_times CSV - 26 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('style_id')),
+            parse_int(row.get('season_id')),
+            row.get('description'),
+            row.get('frontend_display'),
+            parse_float(row.get('start_1')),
+            parse_float(row.get('end_1')),
+            parse_int(row.get('end_days_1')),
+            row.get('status_1'),
+            parse_float(row.get('start_2')),
+            parse_float(row.get('end_2')),
+            parse_int(row.get('end_days_2')),
+            row.get('status_2'),
+            parse_float(row.get('start_3')),
+            parse_float(row.get('end_3')),
+            parse_int(row.get('end_days_3')),
+            row.get('status_3'),
+            parse_float(row.get('start_4')),
+            parse_float(row.get('end_4')),
+            parse_int(row.get('end_days_4')),
+            row.get('status_4'),
+            row.get('valid_days'),
+            parse_int(row.get('holidays_only_if_valid_day')),
+            parse_int(row.get('mapped_time_id')),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style time records")
+    return data_rows
+
+
+def parse_style_prices_data(csv_content):
+    """Parse style_prices CSV - 12 columns, uses TIME_ID as PK (not ID)."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('time_id')),
+            parse_float(row.get('default_price')),
+            parse_float(row.get('holiday')),
+            parse_float(row.get('saturday')),
+            parse_float(row.get('sunday')),
+            parse_float(row.get('monday')),
+            parse_float(row.get('tuesday')),
+            parse_float(row.get('wednesday')),
+            parse_float(row.get('thursday')),
+            parse_float(row.get('friday')),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} style price records")
+    return data_rows
+
+
+def parse_club_tiers_data(csv_content):
+    """Parse club_tiers CSV - 28 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('tier_name'),
+            row.get('frontend_display'),
+            row.get('frontend_name'),
+            parse_int(row.get('frontend_position')),
+            parse_int(row.get('term_length')),
+            row.get('term_length_type'),
+            row.get('term_auto_renew'),
+            parse_float(row.get('term_fee')),
+            parse_int(row.get('period_length')),
+            row.get('period_length_type'),
+            parse_float(row.get('credits_per_period')),
+            parse_float(row.get('hours_per_credit')),
+            parse_float(row.get('period_fee')),
+            row.get('frontend_display_pricing'),
+            parse_float(row.get('no_show_fee')),
+            row.get('allow_self_cancellations'),
+            parse_float(row.get('cancellation_fee')),
+            parse_float(row.get('application_fee')),
+            parse_float(row.get('bdrd')),
+            parse_int(row.get('max_pending_waitlist_entries')),
+            row.get('free_accessories'),
+            row.get('description'),
+            row.get('terms'),
+            row.get('status'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} club tier records")
+    return data_rows
+
+
+def parse_coupons_data(csv_content):
+    """Parse coupons CSV - 30 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('code'),
+            row.get('coupon_name'),
+            row.get('coupon_type'),
+            parse_float(row.get('coupon_amount')),
+            parse_int(row.get('count_allowed')),
+            parse_int(row.get('count_allowed_daily')),
+            parse_int(row.get('count_used')),
+            row.get('rental_start'),
+            row.get('rental_end'),
+            row.get('coupon_start'),
+            row.get('coupon_end'),
+            parse_float(row.get('min_departure_time')),
+            parse_float(row.get('max_departure_time')),
+            parse_float(row.get('min_return_time')),
+            parse_float(row.get('max_return_time')),
+            parse_float(row.get('min_hours')),
+            parse_float(row.get('max_hours')),
+            parse_float(row.get('min_hours_before_departure')),
+            parse_float(row.get('max_hours_before_departure')),
+            parse_int(row.get('max_same_day_per_customer')),
+            parse_int(row.get('max_active_per_customer')),
+            row.get('disable_consecutive_per_customer'),
+            row.get('status'),
+            row.get('valid_days'),
+            parse_int(row.get('holidays_only_if_valid_day')),
+            row.get('valid_styles'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} coupon records")
+    return data_rows
+
+
+def parse_pos_items_data(csv_content):
+    """Parse pos_items CSV - 9 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('sku'),
+            row.get('item_name'),
+            parse_float(row.get('cost')),
+            parse_float(row.get('price')),
+            row.get('tax_exempt'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} POS item records")
+    return data_rows
+
+
+def parse_pos_sales_data(csv_content):
+    """Parse pos_sales CSV - 11 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            parse_int(row.get('admin_id')),
+            row.get('customer_name'),
+            parse_float(row.get('subtotal')),
+            parse_float(row.get('tax_1')),
+            parse_float(row.get('grand_total')),
+            parse_float(row.get('amount_paid')),
+            row.get('created_at'),
+            row.get('updated_at'),
+            row.get('deleted_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} POS sale records")
+    return data_rows
+
+
+def parse_fuel_sales_data(csv_content):
+    """Parse fuel_sales CSV - 14 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            parse_int(row.get('admin_id')),
+            row.get('customer_name'),
+            row.get('fuel_type'),
+            parse_float(row.get('qty')),
+            parse_float(row.get('price')),
+            parse_float(row.get('subtotal')),
+            parse_float(row.get('tip')),
+            parse_float(row.get('grand_total')),
+            parse_float(row.get('amount_paid')),
+            row.get('created_at'),
+            row.get('updated_at'),
+            row.get('deleted_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} fuel sale records")
+    return data_rows
+
+
+def parse_waitlists_data(csv_content):
+    """Parse waitlists CSV - 18 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            parse_int(row.get('category_id')),
+            parse_int(row.get('style_id')),
+            parse_int(row.get('customer_id')),
+            parse_int(row.get('time_id')),
+            parse_int(row.get('timeframe_id')),
+            row.get('firstname'),
+            row.get('lastname'),
+            row.get('email'),
+            row.get('phone'),
+            row.get('departure'),
+            row.get('length'),
+            row.get('waitlist_time'),
+            row.get('fulfilled'),
+            row.get('fulfilled_date'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} waitlist records")
+    return data_rows
+
+
+def parse_closed_dates_data(csv_content):
+    """Parse closed_dates CSV - 9 columns matching actual CSV structure."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('closed_date'),
+            row.get('allow_backend_departures'),
+            row.get('allow_backend_returns'),
+            row.get('allow_frontend_departures'),
+            row.get('allow_frontend_returns'),
+            row.get('created_at'),
+            row.get('updated_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} closed date records")
+    return data_rows
+
+
+def parse_blacklists_data(csv_content):
+    """Parse blacklists CSV - 10 columns (no updated_at in CSV)."""
+    reader = csv.DictReader(io.StringIO(csv_content))
+    data_rows = []
+    
+    for row in reader:
+        data_rows.append((
+            parse_int(row.get('id')),
+            parse_int(row.get('location_id')),
+            row.get('firstname'),
+            row.get('lastname'),
+            row.get('phone'),
+            row.get('cell'),
+            row.get('email'),
+            row.get('dl_number'),
+            row.get('notes'),
+            row.get('created_at')
+        ))
+    
+    logger.info(f"Parsed {len(data_rows)} blacklist records")
+    return data_rows
+
+
 def find_latest_data_file_in_s3(s3_client, bucket, prefix):
     """Find the most recent .gz file in S3 bucket with given prefix."""
     try:
@@ -431,6 +1248,26 @@ def process_stellar_data_from_s3(
         ('amenities', parse_amenities_data, db_connector.insert_amenities),
         ('categories', parse_categories_data, db_connector.insert_categories),
         ('holidays', parse_holidays_data, db_connector.insert_holidays),
+        ('bookings', parse_bookings_data, db_connector.insert_bookings),
+        ('booking_boats', parse_booking_boats_data, db_connector.insert_booking_boats),
+        ('booking_payments', parse_booking_payments_data, db_connector.insert_booking_payments),
+        ('booking_accessories', parse_booking_accessories_data, db_connector.insert_booking_accessories),
+        ('style_groups', parse_style_groups_data, db_connector.insert_style_groups),
+        ('styles', parse_styles_data, db_connector.insert_styles),
+        ('style_boats', parse_style_boats_data, db_connector.insert_style_boats),
+        ('customer_boats', parse_customer_boats_data, db_connector.insert_customer_boats),
+        ('season_dates', parse_season_dates_data, db_connector.insert_season_dates),
+        ('style_hourly_prices', parse_style_hourly_prices_data, db_connector.insert_style_hourly_prices),
+        ('style_times', parse_style_times_data, db_connector.insert_style_times),
+        ('style_prices', parse_style_prices_data, db_connector.insert_style_prices),
+        ('club_tiers', parse_club_tiers_data, db_connector.insert_club_tiers),
+        ('coupons', parse_coupons_data, db_connector.insert_coupons),
+        ('pos_items', parse_pos_items_data, db_connector.insert_pos_items),
+        ('pos_sales', parse_pos_sales_data, db_connector.insert_pos_sales),
+        ('fuel_sales', parse_fuel_sales_data, db_connector.insert_fuel_sales),
+        ('waitlists', parse_waitlists_data, db_connector.insert_waitlists),
+        ('closed_dates', parse_closed_dates_data, db_connector.insert_closed_dates),
+        ('blacklists', parse_blacklists_data, db_connector.insert_blacklists),
     ]
     
     # Process each table
