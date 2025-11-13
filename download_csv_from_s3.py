@@ -2371,7 +2371,9 @@ def parse_currencies_data(csv_content):
         try:
             currency_data = (
                 row.get('Id', '').strip()[:10],
-                row.get('Name', '').strip()[:100]
+                row.get('Name', '').strip()[:100],
+                row.get('Code', '').strip()[:10] if row.get('Code') else None,
+                row.get('Symbol', '').strip()[:10] if row.get('Symbol') else None
             )
             currencies.append(currency_data)
         except Exception as e:

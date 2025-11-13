@@ -1332,8 +1332,8 @@ class OracleConnector:
             return
         
         insert_sql = """
-            INSERT INTO STG_MOLO_CURRENCIES (id, name)
-            VALUES (:1, :2)
+            INSERT INTO STG_MOLO_CURRENCIES (id, name, code, symbol)
+            VALUES (:1, :2, :3, :4)
         """
         
         try:

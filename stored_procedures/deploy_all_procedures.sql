@@ -38,6 +38,45 @@ END SP_MERGE_MOLO_ACCOUNT_STATUS;
 /
 
 -- ============================================================================
+-- Merge STG_MOLO_ADDRESS_TYPES to DW_MOLO_ADDRESS_TYPES
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_ADDRESS_TYPES
+IS
+    v_merged NUMBER := 0;
+BEGIN
+    MERGE INTO DW_MOLO_ADDRESS_TYPES tgt
+    USING STG_MOLO_ADDRESS_TYPES src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID, NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID, src.NAME,
+            SYSTIMESTAMP,
+            SYSTIMESTAMP
+        );
+    
+    v_merged := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_ADDRESS_TYPES: Merged ' || v_merged || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_ADDRESS_TYPES: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_ADDRESS_TYPES;
+/
+
+-- ============================================================================
 -- Merge STG_MOLO_ACCOUNTS to DW_MOLO_ACCOUNTS
 -- ============================================================================
 CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_ACCOUNTS
@@ -488,6 +527,211 @@ END SP_MERGE_MOLO_COUNTRIES;
 /
 
 -- ============================================================================
+-- Merge STG_MOLO_CURRENCIES to DW_MOLO_CURRENCIES
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_CURRENCIES
+IS
+    v_merged NUMBER := 0;
+BEGIN
+    MERGE INTO DW_MOLO_CURRENCIES tgt
+    USING STG_MOLO_CURRENCIES src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.CODE = src.CODE,
+            tgt.SYMBOL = src.SYMBOL,
+            tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID, NAME, CODE, SYMBOL,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID, src.NAME, src.CODE, src.SYMBOL,
+            SYSTIMESTAMP,
+            SYSTIMESTAMP
+        );
+    
+    v_merged := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_CURRENCIES: Merged ' || v_merged || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_CURRENCIES: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_CURRENCIES;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_DUE_DATE_SETTINGS to DW_MOLO_DUE_DATE_SETTINGS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_DUE_DATE_SETTINGS AS
+    v_merge_count NUMBER := 0;
+BEGIN
+    -- Merge Due Date Settings data from staging to data warehouse
+    MERGE INTO DW_MOLO_DUE_DATE_SETTINGS tgt
+    USING STG_MOLO_DUE_DATE_SETTINGS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merge_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_DUE_DATE_SETTINGS: Merged ' || v_merge_count || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_DUE_DATE_SETTINGS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_DUE_DATE_SETTINGS;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_EQUIPMENT_FUEL_TYPES to DW_MOLO_EQUIPMENT_FUEL_TYPES
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_EQUIPMENT_FUEL_TYPES AS
+    v_merge_count NUMBER := 0;
+BEGIN
+    -- Merge Equipment Fuel Types data from staging to data warehouse
+    MERGE INTO DW_MOLO_EQUIPMENT_FUEL_TYPES tgt
+    USING STG_MOLO_EQUIPMENT_FUEL_TYPES src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merge_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_EQUIPMENT_FUEL_TYPES: Merged ' || v_merge_count || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_EQUIPMENT_FUEL_TYPES: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_EQUIPMENT_FUEL_TYPES;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_EQUIPMENT_TYPES to DW_MOLO_EQUIPMENT_TYPES
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_EQUIPMENT_TYPES AS
+    v_merge_count NUMBER := 0;
+BEGIN
+    -- Merge Equipment Types data from staging to data warehouse
+    MERGE INTO DW_MOLO_EQUIPMENT_TYPES tgt
+    USING STG_MOLO_EQUIPMENT_TYPES src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merge_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_EQUIPMENT_TYPES: Merged ' || v_merge_count || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_EQUIPMENT_TYPES: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_EQUIPMENT_TYPES;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_INSTALLMENTS_PAYMENT_METHODS to DW_MOLO_INSTALLMENTS_PAYMENT_METHODS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_INSTALLMENTS_PAYMENT_METHODS AS
+    v_merge_count NUMBER := 0;
+BEGIN
+    -- Merge Installments Payment Methods data from staging to data warehouse
+    MERGE INTO DW_MOLO_INSTALLMENTS_PAYMENT_METHODS tgt
+    USING STG_MOLO_INSTALLMENTS_PAYMENT_METHODS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merge_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_INSTALLMENTS_PAYMENT_METHODS: Merged ' || v_merge_count || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_INSTALLMENTS_PAYMENT_METHODS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_INSTALLMENTS_PAYMENT_METHODS;
+/
+
+-- ============================================================================
 -- Merge STG_MOLO_INSURANCE_STATUS to DW_MOLO_INSURANCE_STATUS
 -- ============================================================================
 CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_INSURANCE_STATUS
@@ -735,6 +979,47 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_INVOICE_TYPES: ' || SQLERRM);
         RAISE;
 END SP_MERGE_MOLO_INVOICE_TYPES;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_INVOICE_ITEM_TYPES to DW_MOLO_INVOICE_ITEM_TYPES
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_INVOICE_ITEM_TYPES AS
+    v_merge_count NUMBER := 0;
+BEGIN
+    -- Merge Invoice Item Types data from staging to data warehouse
+    MERGE INTO DW_MOLO_INVOICE_ITEM_TYPES tgt
+    USING STG_MOLO_INVOICE_ITEM_TYPES src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merge_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_INVOICE_ITEM_TYPES: Merged ' || v_merge_count || ' records');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_INVOICE_ITEM_TYPES: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_INVOICE_ITEM_TYPES;
 /
 
 -- ============================================================================
@@ -1076,6 +1361,59 @@ END SP_MERGE_MOLO_PAYMENT_METHODS;
 /
 
 -- ============================================================================
+-- Merge STG_MOLO_PAYMENTS_PROVIDER to DW_MOLO_PAYMENTS_PROVIDER
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_PAYMENTS_PROVIDER AS
+    v_merged_count NUMBER := 0;
+    v_inserted_count NUMBER := 0;
+    v_updated_count NUMBER := 0;
+BEGIN
+    -- Merge data from staging to data warehouse
+    MERGE INTO DW_MOLO_PAYMENTS_PROVIDER tgt
+    USING STG_MOLO_PAYMENTS_PROVIDER src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merged_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    -- Get counts for reporting
+    SELECT COUNT(*) INTO v_inserted_count
+    FROM DW_MOLO_PAYMENTS_PROVIDER
+    WHERE DW_LAST_INSERTED = DW_LAST_UPDATED;
+    
+    v_updated_count := v_merged_count - v_inserted_count;
+    
+    DBMS_OUTPUT.PUT_LINE('Payments Provider merge completed:');
+    DBMS_OUTPUT.PUT_LINE('  Total merged: ' || v_merged_count);
+    DBMS_OUTPUT.PUT_LINE('  Inserted: ' || v_inserted_count);
+    DBMS_OUTPUT.PUT_LINE('  Updated: ' || v_updated_count);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_PAYMENTS_PROVIDER: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_PAYMENTS_PROVIDER;
+/
+
+-- ============================================================================
 -- Merge STG_MOLO_PHONE_TYPES to DW_MOLO_PHONE_TYPES
 -- ============================================================================
 CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_PHONE_TYPES
@@ -1230,6 +1568,59 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_RECORD_STATUS: ' || SQLERRM);
         RAISE;
 END SP_MERGE_MOLO_RECORD_STATUS;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_RECURRING_INVOICE_OPTIONS to DW_MOLO_RECURRING_INVOICE_OPTIONS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_RECURRING_INVOICE_OPTIONS AS
+    v_merged_count NUMBER := 0;
+    v_inserted_count NUMBER := 0;
+    v_updated_count NUMBER := 0;
+BEGIN
+    -- Merge data from staging to data warehouse
+    MERGE INTO DW_MOLO_RECURRING_INVOICE_OPTIONS tgt
+    USING STG_MOLO_RECURRING_INVOICE_OPTIONS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merged_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    -- Get counts for reporting
+    SELECT COUNT(*) INTO v_inserted_count
+    FROM DW_MOLO_RECURRING_INVOICE_OPTIONS
+    WHERE DW_LAST_INSERTED = DW_LAST_UPDATED;
+    
+    v_updated_count := v_merged_count - v_inserted_count;
+    
+    DBMS_OUTPUT.PUT_LINE('Recurring Invoice Options merge completed:');
+    DBMS_OUTPUT.PUT_LINE('  Total merged: ' || v_merged_count);
+    DBMS_OUTPUT.PUT_LINE('  Inserted: ' || v_inserted_count);
+    DBMS_OUTPUT.PUT_LINE('  Updated: ' || v_updated_count);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_RECURRING_INVOICE_OPTIONS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_RECURRING_INVOICE_OPTIONS;
 /
 
 -- ============================================================================
@@ -1445,6 +1836,59 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_SEASONAL_CHARGE_METHODS: ' || SQLERRM);
         RAISE;
 END SP_MERGE_MOLO_SEASONAL_CHARGE_METHODS;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_SEASONAL_INVOICING_METHODS to DW_MOLO_SEASONAL_INVOICING_METHODS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_SEASONAL_INVOICING_METHODS AS
+    v_merged_count NUMBER := 0;
+    v_inserted_count NUMBER := 0;
+    v_updated_count NUMBER := 0;
+BEGIN
+    -- Merge data from staging to data warehouse
+    MERGE INTO DW_MOLO_SEASONAL_INVOICING_METHODS tgt
+    USING STG_MOLO_SEASONAL_INVOICING_METHODS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merged_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    -- Get counts for reporting
+    SELECT COUNT(*) INTO v_inserted_count
+    FROM DW_MOLO_SEASONAL_INVOICING_METHODS
+    WHERE DW_LAST_INSERTED = DW_LAST_UPDATED;
+    
+    v_updated_count := v_merged_count - v_inserted_count;
+    
+    DBMS_OUTPUT.PUT_LINE('Seasonal Invoicing Methods merge completed:');
+    DBMS_OUTPUT.PUT_LINE('  Total merged: ' || v_merged_count);
+    DBMS_OUTPUT.PUT_LINE('  Inserted: ' || v_inserted_count);
+    DBMS_OUTPUT.PUT_LINE('  Updated: ' || v_updated_count);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_SEASONAL_INVOICING_METHODS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_SEASONAL_INVOICING_METHODS;
 /
 
 -- ============================================================================
@@ -1883,6 +2327,59 @@ END SP_MERGE_MOLO_TRANSIENT_CHARGE_METHODS;
 /
 
 -- ============================================================================
+-- Merge STG_MOLO_TRANSIENT_INVOICING_METHODS to DW_MOLO_TRANSIENT_INVOICING_METHODS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_TRANSIENT_INVOICING_METHODS AS
+    v_merged_count NUMBER := 0;
+    v_inserted_count NUMBER := 0;
+    v_updated_count NUMBER := 0;
+BEGIN
+    -- Merge data from staging to data warehouse
+    MERGE INTO DW_MOLO_TRANSIENT_INVOICING_METHODS tgt
+    USING STG_MOLO_TRANSIENT_INVOICING_METHODS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merged_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    -- Get counts for reporting
+    SELECT COUNT(*) INTO v_inserted_count
+    FROM DW_MOLO_TRANSIENT_INVOICING_METHODS
+    WHERE DW_LAST_INSERTED = DW_LAST_UPDATED;
+    
+    v_updated_count := v_merged_count - v_inserted_count;
+    
+    DBMS_OUTPUT.PUT_LINE('Transient Invoicing Methods merge completed:');
+    DBMS_OUTPUT.PUT_LINE('  Total merged: ' || v_merged_count);
+    DBMS_OUTPUT.PUT_LINE('  Inserted: ' || v_inserted_count);
+    DBMS_OUTPUT.PUT_LINE('  Updated: ' || v_updated_count);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_TRANSIENT_INVOICING_METHODS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_TRANSIENT_INVOICING_METHODS;
+/
+
+-- ============================================================================
 -- Merge STG_MOLO_TRANSIENT_PRICES to DW_MOLO_TRANSIENT_PRICES
 -- ============================================================================
 CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_TRANSIENT_PRICES
@@ -1962,6 +2459,59 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_TRANSIENT_PRICES: ' || SQLERRM);
         RAISE;
 END SP_MERGE_MOLO_TRANSIENT_PRICES;
+/
+
+-- ============================================================================
+-- Merge STG_MOLO_VESSEL_ENGINE_CLASS to DW_MOLO_VESSEL_ENGINE_CLASS
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_VESSEL_ENGINE_CLASS AS
+    v_merged_count NUMBER := 0;
+    v_inserted_count NUMBER := 0;
+    v_updated_count NUMBER := 0;
+BEGIN
+    -- Merge data from staging to data warehouse
+    MERGE INTO DW_MOLO_VESSEL_ENGINE_CLASS tgt
+    USING STG_MOLO_VESSEL_ENGINE_CLASS src
+    ON (tgt.ID = src.ID)
+    WHEN MATCHED THEN
+        UPDATE SET
+            tgt.NAME = src.NAME,
+            tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (
+            ID,
+            NAME,
+            DW_LAST_INSERTED,
+            DW_LAST_UPDATED
+        )
+        VALUES (
+            src.ID,
+            src.NAME,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    
+    v_merged_count := SQL%ROWCOUNT;
+    COMMIT;
+    
+    -- Get counts for reporting
+    SELECT COUNT(*) INTO v_inserted_count
+    FROM DW_MOLO_VESSEL_ENGINE_CLASS
+    WHERE DW_LAST_INSERTED = DW_LAST_UPDATED;
+    
+    v_updated_count := v_merged_count - v_inserted_count;
+    
+    DBMS_OUTPUT.PUT_LINE('Vessel Engine Class merge completed:');
+    DBMS_OUTPUT.PUT_LINE('  Total merged: ' || v_merged_count);
+    DBMS_OUTPUT.PUT_LINE('  Inserted: ' || v_inserted_count);
+    DBMS_OUTPUT.PUT_LINE('  Updated: ' || v_updated_count);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error in SP_MERGE_MOLO_VESSEL_ENGINE_CLASS: ' || SQLERRM);
+        RAISE;
+END SP_MERGE_MOLO_VESSEL_ENGINE_CLASS;
 /
 
 -- ============================================================================
@@ -3786,14 +4336,17 @@ BEGIN
     SP_MERGE_MOLO_ITEM_MASTERS;
     SP_MERGE_MOLO_MARINA_LOCATIONS;
     SP_MERGE_MOLO_PAYMENT_METHODS;
+    SP_MERGE_MOLO_PAYMENTS_PROVIDER;
     SP_MERGE_MOLO_PHONE_TYPES;
     SP_MERGE_MOLO_PIERS;
     SP_MERGE_MOLO_POWER_NEEDS;
     SP_MERGE_MOLO_RECORD_STATUS;
+    SP_MERGE_MOLO_RECURRING_INVOICE_OPTIONS;
     SP_MERGE_MOLO_RESERVATIONS;
     SP_MERGE_MOLO_RESERVATION_STATUS;
     SP_MERGE_MOLO_RESERVATION_TYPES;
     SP_MERGE_MOLO_SEASONAL_CHARGE_METHODS;
+    SP_MERGE_MOLO_SEASONAL_INVOICING_METHODS;
     SP_MERGE_MOLO_SEASONAL_PRICES;
     SP_MERGE_MOLO_SLIPS;
     SP_MERGE_MOLO_SLIP_TYPES;
@@ -3802,7 +4355,9 @@ BEGIN
     SP_MERGE_MOLO_TRANSACTIONS;
     SP_MERGE_MOLO_TRANSACTION_TYPES;
     SP_MERGE_MOLO_TRANSIENT_CHARGE_METHODS;
+    SP_MERGE_MOLO_TRANSIENT_INVOICING_METHODS;
     SP_MERGE_MOLO_TRANSIENT_PRICES;
+    SP_MERGE_MOLO_VESSEL_ENGINE_CLASS;
     
     -- Stellar Merges
     DBMS_OUTPUT.PUT_LINE('--- Processing Stellar Tables ---');
