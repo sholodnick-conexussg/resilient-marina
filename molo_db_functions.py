@@ -865,15 +865,20 @@ class OracleConnector:
             return
         
         insert_sql = """
-            INSERT INTO STG_MOLO_INSURANCE (id, boat_id, policy_number, provider_name, start_date, end_date, 
-                       coverage_amount, premium_amount, status_id)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)
+            INSERT INTO STG_MOLO_INSURANCE (
+                ID, PROVIDER, LISTED_INDIVIDUAL, ACCOUNT_NUMBER, POLICY_NUMBER, 
+                GROUP_NUMBER, LIABILITY_MAXIMUM, EFFECTIVE_DATE, EXPIRATION_DATE, 
+                NOTES, CREATION_USER, CREATION_DATE_TIME, LAST_EDIT_USER, 
+                LAST_EDIT_DATE_TIME, DELETE_USER, DELETE_DATE_TIME, 
+                INSURANCE_STATUS_ID, BOAT_ID, HASH_ID
+            )
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)
         """
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
             self.connection.commit()
-            logger.info(f"✅ Successfully merged {len(data_rows)} insurance records")
+            logger.info(f"✅ Successfully inserted {len(data_rows)} insurance records")
         except Exception as e:
             logger.exception(f"Error inserting insurance to staging: {e}")
             self.connection.rollback()

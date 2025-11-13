@@ -67,14 +67,14 @@ TARGET_CSV_FILES = [
     'TransientPrices', 'RecordStatusSet', 'BoatTypes', 'PowerNeeds',
     'ReservationStatus', 'ReservationTypes', 'ContactTypes',
     'InvoiceStatusSet', 'InvoiceTypeSet', 'TransactionTypeSet', 
-    'TransactionMethodSet', 'Insurance', 'Equipment', 'AccountStatusSet',
-    'ContactAutoChargeSet', 'StatementsPreferenceSet', 'InvoiceItemTypes',
-    'PaymentMethods', 'SeasonalChargeMethods', 'SeasonalInvoicingMethods',
-    'TransientChargeMethods', 'TransientInvoicingMethods', 'RecurringInvoiceOptions',
-    'DueDateSettings', 'ItemChargeMethods', 'InsuranceStatusSet',
-    'EquipmentTypes', 'EquipmentFuelTypes', 'VesselEngineClass',
-    'Cities', 'Countries', 'Currencies', 'PhoneTypes', 'AddressTypes',
-    'InstallmentsPaymentMethods', 'PaymentsProvider'
+    'TransactionMethodSet', 'InsuranceSet', 'EquipmentSet', 'AccountStatus',
+    'ContactAutoChargeSet', 'StatementsPreferenceSet', 'InvoiceItemTypeSet',
+    'PaymentMethods', 'SeasonalChargeMethods', 'SeasonalInvoicingMethodSet',
+    'TransientChargeMethods', 'TransientInvoicingMethodSet', 'RecurringInvoiceOptionsSet',
+    'DueDateSettingsSet', 'ItemChargeMethods', 'InsuranceStatusSet',
+    'EquipmentTypeSet', 'EquipmentFuelTypeSet', 'VesselEngineClassSet',
+    'Cities', 'Countries', 'CurrenciesSet', 'PhoneTypes', 'AddressTypeSet',
+    'InstalmentsPaymentMethodSet', 'PaymentsProviderSet'
 ]
 
 # =============================================================================
@@ -1790,7 +1790,8 @@ def parse_transaction_methods_data(csv_content):
 
 def parse_insurance_data(csv_content):
     """
-    Parse Insurance CSV content into database-ready format.
+    Parse InsuranceSet CSV content into database-ready format.
+    Maps to STG_MOLO_INSURANCE table structure.
     
     Args:
         csv_content (str): Raw CSV content as string
@@ -1804,15 +1805,25 @@ def parse_insurance_data(csv_content):
     for row in csv_reader:
         try:
             insurance_data = (
-                row.get('Id', '').strip()[:10],
-                row.get('BoatId', '').strip()[:10],
-                row.get('PolicyNumber', '').strip()[:50],
-                row.get('ProviderName', '').strip()[:100],
-                parse_datetime(row.get('StartDate', '')),
-                parse_datetime(row.get('EndDate', '')),
-                float(row.get('CoverageAmount', 0)) if row.get('CoverageAmount') else None,
-                float(row.get('PremiumAmount', 0)) if row.get('PremiumAmount') else None,
-                row.get('StatusId', '').strip()[:10]
+                row.get('Id', '').strip()[:10] if row.get('Id', '').strip() else None,
+                row.get('Provider', '').strip()[:1000] if row.get('Provider', '').strip() else None,
+                row.get('ListedIndividual', '').strip()[:1000] if row.get('ListedIndividual', '').strip() else None,
+                row.get('AccountNumber', '').strip()[:1000] if row.get('AccountNumber', '').strip() else None,
+                row.get('PolicyNumber', '').strip()[:1000] if row.get('PolicyNumber', '').strip() else None,
+                row.get('GroupNumber', '').strip()[:1000] if row.get('GroupNumber', '').strip() else None,
+                float(row.get('LiabilityMaximum')) if row.get('LiabilityMaximum', '').strip() else None,
+                parse_datetime(row.get('EffectiveDate', '')),
+                parse_datetime(row.get('ExpirationDate', '')),
+                row.get('Notes', '').strip()[:1000] if row.get('Notes', '').strip() else None,
+                row.get('CreationUser', '').strip()[:1000] if row.get('CreationUser', '').strip() else None,
+                parse_datetime(row.get('CreationDateTime', '')),
+                row.get('LastEditUser', '').strip()[:1000] if row.get('LastEditUser', '').strip() else None,
+                parse_datetime(row.get('LastEditDateTime', '')),
+                row.get('DeleteUser', '').strip()[:1000] if row.get('DeleteUser', '').strip() else None,
+                parse_datetime(row.get('DeleteDateTime', '')),
+                row.get('InsuranceStatus_Id', '').strip()[:10] if row.get('InsuranceStatus_Id', '').strip() else None,
+                row.get('Boat_Id', '').strip()[:10] if row.get('Boat_Id', '').strip() else None,
+                row.get('HashID', '').strip()[:1000] if row.get('HashID', '').strip() else None
             )
             insurance_records.append(insurance_data)
         except Exception as e:
@@ -2943,19 +2954,19 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} transaction method records")
                     
                     processed_count += 1
-                elif csv_name == 'Insurance':
+                elif csv_name == 'InsuranceSet':
                     parsed_data = parse_insurance_data(csv_content)
                     db.insert_insurance(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} insurance records")
                     
                     processed_count += 1
-                elif csv_name == 'Equipment':
+                elif csv_name == 'EquipmentSet':
                     parsed_data = parse_equipment_data(csv_content)
                     db.insert_equipment(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} equipment records")
                     
                     processed_count += 1
-                elif csv_name == 'AccountStatusSet':
+                elif csv_name == 'AccountStatus':
                     parsed_data = parse_account_status_data(csv_content)
                     db.insert_account_status(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} account status records")
@@ -2973,7 +2984,7 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} statements preference records")
                     
                     processed_count += 1
-                elif csv_name == 'InvoiceItemTypes':
+                elif csv_name == 'InvoiceItemTypeSet':
                     parsed_data = parse_invoice_item_types_data(csv_content)
                     db.insert_invoice_item_types(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} invoice item type records")
@@ -2991,7 +3002,7 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} seasonal charge method records")
                     
                     processed_count += 1
-                elif csv_name == 'SeasonalInvoicingMethods':
+                elif csv_name == 'SeasonalInvoicingMethodSet':
                     parsed_data = parse_seasonal_invoicing_methods_data(csv_content)
                     db.insert_seasonal_invoicing_methods(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} seasonal invoicing method records")
@@ -3003,19 +3014,19 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} transient charge method records")
                     
                     processed_count += 1
-                elif csv_name == 'TransientInvoicingMethods':
+                elif csv_name == 'TransientInvoicingMethodSet':
                     parsed_data = parse_transient_invoicing_methods_data(csv_content)
                     db.insert_transient_invoicing_methods(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} transient invoicing method records")
                     
                     processed_count += 1
-                elif csv_name == 'RecurringInvoiceOptions':
+                elif csv_name == 'RecurringInvoiceOptionsSet':
                     parsed_data = parse_recurring_invoice_options_data(csv_content)
                     db.insert_recurring_invoice_options(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} recurring invoice option records")
                     
                     processed_count += 1
-                elif csv_name == 'DueDateSettings':
+                elif csv_name == 'DueDateSettingsSet':
                     parsed_data = parse_due_date_settings_data(csv_content)
                     db.insert_due_date_settings(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} due date setting records")
@@ -3033,19 +3044,19 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} insurance status records")
                     
                     processed_count += 1
-                elif csv_name == 'EquipmentTypes':
+                elif csv_name == 'EquipmentTypeSet':
                     parsed_data = parse_equipment_types_data(csv_content)
                     db.insert_equipment_types(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} equipment type records")
                     
                     processed_count += 1
-                elif csv_name == 'EquipmentFuelTypes':
+                elif csv_name == 'EquipmentFuelTypeSet':
                     parsed_data = parse_equipment_fuel_types_data(csv_content)
                     db.insert_equipment_fuel_types(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} equipment fuel type records")
                     
                     processed_count += 1
-                elif csv_name == 'VesselEngineClass':
+                elif csv_name == 'VesselEngineClassSet':
                     parsed_data = parse_vessel_engine_class_data(csv_content)
                     db.insert_vessel_engine_class(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} vessel engine class records")
@@ -3063,7 +3074,7 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} country records")
                     
                     processed_count += 1
-                elif csv_name == 'Currencies':
+                elif csv_name == 'CurrenciesSet':
                     parsed_data = parse_currencies_data(csv_content)
                     db.insert_currencies(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} currency records")
@@ -3075,19 +3086,19 @@ def read_s3_zip_and_insert_to_db(
                     logger.info(f"✅ Processed {len(parsed_data)} phone type records")
                     
                     processed_count += 1
-                elif csv_name == 'AddressTypes':
+                elif csv_name == 'AddressTypeSet':
                     parsed_data = parse_address_types_data(csv_content)
                     db.insert_address_types(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} address type records")
                     
                     processed_count += 1
-                elif csv_name == 'InstallmentsPaymentMethods':
+                elif csv_name == 'InstalmentsPaymentMethodSet':
                     parsed_data = parse_installments_payment_methods_data(csv_content)
                     db.insert_installments_payment_methods(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} installments payment method records")
                     
                     processed_count += 1
-                elif csv_name == 'PaymentsProvider':
+                elif csv_name == 'PaymentsProviderSet':
                     parsed_data = parse_payments_provider_data(csv_content)
                     db.insert_payments_provider(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} payments provider records")

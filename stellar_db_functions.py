@@ -223,7 +223,7 @@ class OracleConnector:
                     CANCEL_REASON, CANCEL_DATE, IS_TRANSFERRED, TRANSFER_DESTINATION,
                     MODULE_TYPE, OPERATING_LOCATION, ZOHO_ID, ZCRM_ID, IS_ACTIVE,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, TO_DATE(:13, 'YYYY-MM-DD'), :14, :15, :16, :17, :18, :19, :20, TO_TIMESTAMP(:21, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:22, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -260,7 +260,7 @@ class OracleConnector:
                     CC_SAVED_NAME, CC_SAVED_LAST4, CC_SAVED_EXPIRY, CC_SAVED_PROFILE_ID,
                     CC_SAVED_METHOD_ID, CC_SAVED_ADDRESS_ID,
                     EXTERNAL_ID, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, TO_DATE(:29, 'YYYY-MM-DD'), :30, :31, :32, :33, :34, :35, TO_DATE(:36, 'YYYY-MM-DD'), :37, TO_DATE(:38, 'YYYY-MM-DD'), :39, :40, :41, :42, TO_DATE(:43, 'YYYY-MM-DD'), :44, :45, :46, :47, :48, :49, :50, TO_TIMESTAMP(:51, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:52, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -284,7 +284,7 @@ class OracleConnector:
         
         insert_sql = """
         INSERT INTO STG_STELLAR_BOOKINGS (ID, LOCATION_ID, CUSTOMER_ID, CREATOR_ID, ADMIN_ID, BILLING_FIRST_NAME, BILLING_LAST_NAME, BILLING_STREET1, BILLING_STREET2, BILLING_CITY, BILLING_STATE, BILLING_COUNTRY, BILLING_ZIP, CC_SAVED_NAME, CC_SAVED_LAST4, CC_SAVED_PROFILE_ID, CC_SAVED_METHOD_ID, CC_SAVED_ADDRESS_ID, CC_PREAUTH_ID, CC_PREAUTH_AMOUNT, CC_CONNECT_TYPE, CC_CONNECT_ID, ACCESSORIES_CUSTOM_PRICE, ACCESSORIES_TOTAL, INSURANCE_AMOUNT, PETS, PARKING, PARKING_OVERRIDE, BOATS_TOTAL, POS_TOTAL, USE_CLUB_CREDITS, NO_SHOW_FEE, CANCELLATION_FEE, CLUB_FEES, CLUB_FEES_OVERRIDE, SUB_TOTAL, CONVENIENCE_FEE, CONVENIENCE_FEE_WAIVED, INTERNAL_APPLICATION_FEE, TAX_1, TAX_1_EXEMPT, TAX_1_RATE_OVERRIDE, TAX_2, TAX_2_EXEMPT, CHECK_IN_TAX_1, CHECK_IN_TAX_2, CHECK_IN_TOTAL, DEPOSIT_TOTAL, DEPOSIT_OVERRIDE, DEPOSIT_WAIVED, GRATUITY, GRAND_TOTAL, ADJUSTMENT_TOTAL, AMOUNT_PAID, NOTES, NOTES_CONTRACT, NOTES_FROM_CUSTOMER, NOTES_FROM_CUSTOMER_CONTRACT, NOTES_FOR_CUSTOMER, NOTES_FOR_CUSTOMER_CONTRACT, FRONTEND, IS_ON_HOLD, IS_LOCKED, IS_FINALIZED, IS_CANCELED, OVERRIDE_TURNAROUND_TIME, CANCELLATION_TYPE, BYPASS_CLUB_RESTRICTIONS, RENTERS_INSURANCE_INTEREST, COUPON_ID, COUPON_TYPE, COUPON_AMOUNT, DISCOUNT_TOTAL, AGENT_ID, AGENT_NAME, REFERRER_ID, SAFETY_REMINDER, DELETED_ADMIN_ID, CREATED_AT, UPDATED_AT, FINALIZED_AT, DELETED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56, :57, :58, :59, :60, :61, :62, :63, :64, :65, :66, :67, :68, :69, :70, :71, :72, :73, :74, :75, :76, :77, :78, :79, :80, :81, :82)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56, :57, :58, :59, :60, :61, :62, :63, :64, :65, :66, :67, :68, :69, :70, :71, :72, :73, :74, :75, :76, :77, :78, TO_TIMESTAMP(:79, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:80, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:81, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:82, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -319,8 +319,8 @@ class OracleConnector:
                     BOAT_ASSIGNED, ADDITIONAL_DRIVERS, ADDITIONAL_DRIVER_NAMES, ACCESSORIES_MIGRATED,
                     PRICE_RULE_ID, PRICE_RULE_ORIGINAL_PRICE, PRICE_RULE_DYNAMIC_PRICE,
                     PRICE_RULE_DIFFERENCE, EMERGENCY_NAME, EMERGENCY_PHONE, DATE_OF_BIRTH,
-                    CONTRACT_RETURN_PDF, CONTRACT_PDF, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56)"""
+                    CONTRACT_RETURN_PDF, CONTRACT_PDF, CREATED_AT, UPDATED_AT, DELETED_AT)
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, TO_TIMESTAMP(:14, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:15, 'YYYY-MM-DD HH24:MI:SS'), :16, :17, :18, TO_TIMESTAMP(:19, 'YYYY-MM-DD HH24:MI:SS'), :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, TO_TIMESTAMP(:39, 'YYYY-MM-DD HH24:MI:SS'), :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, TO_TIMESTAMP(:55, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:56, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:57, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -355,7 +355,7 @@ class OracleConnector:
                     INTERNAL_APPLICATION_FEE, CC_PROCESSOR_FEE, CC_BRAND, CC_COUNTRY,
                     CC_FUNDING, CC_CONNECT_TYPE, CC_CONNECT_ID, CC_PAYOUT_ID, CC_PAYOUT_DATE,
                     EXTERNAL_CHARGE_ID, IS_SYNCED, STRIPE_READER_ID, CREATED_AT, UPDATED_AT, DELETED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, TO_TIMESTAMP(:50, 'YYYY-MM-DD HH24:MI:SS'), :51, :52, :53, TO_TIMESTAMP(:54, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:55, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:56, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -381,7 +381,7 @@ class OracleConnector:
         INSERT INTO STG_STELLAR_STYLE_GROUPS (ID, LOCATION_ID, GROUP_NAME, FRONTEND_MAX_SAME_DEPARTURES,
                     SAFETY_TEST_ENABLED, SAFETY_TEST_INSTRUCTIONS, SAFETY_TEST_MIN_PERCENT_PASS,
                     SAFETY_TEST_EXPIRATION_DAYS, SAFETY_VIDEO_LINK, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, TO_TIMESTAMP(:10, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:11, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -433,7 +433,7 @@ class OracleConnector:
                     END_HOURS, SEASONAL_BUFFER_DEFAULT_LOWER, SEASONAL_BUFFER_DEFAULT_UPPER,
                     SEASONAL_BUFFER_PEAK_LOWER, SEASONAL_BUFFER_PEAK_UPPER, BILLABLE_UNIT_TYPE,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56, :57, :58, :59, :60, :61, :62, :63, :64, :65, :66, :67, :68, :69, :70, :71, :72, :73, :74, :75, :76, :77, :78, :79, :80, :81, :82, :83, :84, :85, :86, :87, :88, :89, :90, :91, :92, :93, :94, :95, :96, :97, :98)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56, :57, :58, :59, :60, :61, :62, :63, :64, :65, :66, :67, :68, :69, :70, :71, :72, :73, :74, :75, :76, :77, :78, :79, :80, :81, :82, :83, :84, :85, :86, :87, :88, :89, :90, :91, :92, :93, :94, :95, :96, TO_TIMESTAMP(:97, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:98, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -464,7 +464,11 @@ class OracleConnector:
                     STATE_REG_DATE, STATE_REG_EXP_DATE, ENGINE_PURCHASED_COST,
                     BACKEND_DISPLAY, POSITION_ORDER, STATUS_BOAT, SERVICE_START, SERVICE_END,
                     CLEAN_STATUS, INSURANCE_REG_NO, BUOY_INSURANCE_STATUS, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, 
+                    TO_DATE(:15, 'YYYY-MM-DD'), :16, TO_DATE(:17, 'YYYY-MM-DD'), :18, :19, :20, :21, :22, :23, :24, :25, :26, 
+                    TO_DATE(:27, 'YYYY-MM-DD'), TO_DATE(:28, 'YYYY-MM-DD'), :29, :30, :31, :32, 
+                    TO_DATE(:33, 'YYYY-MM-DD'), TO_DATE(:34, 'YYYY-MM-DD'), :35, :36, :37, 
+                    TO_TIMESTAMP(:38, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:39, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -490,7 +494,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_CUSTOMER_BOATS (ID, CUSTOMER_ID, SLIP_ID, BOAT_NAME, BOAT_NUMBER,
                     LENGTH_FEET, WIDTH_FEET, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, TO_TIMESTAMP(:8, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:9, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -520,7 +524,7 @@ class OracleConnector:
                     WEEK_END_MAX_START_TIME, WEEK_END_MIN_END_TIME, WEEK_END_MAX_END_TIME,
                     HOLIDAY_MIN_START_TIME, HOLIDAY_MAX_START_TIME, HOLIDAY_MIN_END_TIME,
                     HOLIDAY_MAX_END_TIME, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)"""
+            VALUES (:1, :2, :3, TO_DATE(:4, 'YYYY-MM-DD'), TO_DATE(:5, 'YYYY-MM-DD'), :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, TO_TIMESTAMP(:19, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:20, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -545,7 +549,7 @@ class OracleConnector:
         
         insert_sql = """
         INSERT INTO STG_STELLAR_SEASON_DATES (ID, SEASON_ID, START_DATE, END_DATE)
-            VALUES (:1, :2, :3, :4)"""
+            VALUES (:1, :2, TO_DATE(:3, 'YYYY-MM-DD'), TO_DATE(:4, 'YYYY-MM-DD'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -574,7 +578,7 @@ class OracleConnector:
                     THURSDAY, FRIDAY, DAY_DISCOUNT, UNDER_ONE_HOUR,
                     FIRST_HOUR_AM, FIRST_HOUR_PM, MAX_PRICE, MIN_HOURS,
                     MAX_HOURS, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, TO_TIMESTAMP(:21, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:22, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -588,10 +592,10 @@ class OracleConnector:
     def insert_style_times(self, data_rows):
         """
         Insert style time data into STG_STELLAR_STYLE_TIMES table.
-        Time slot availability by style - 26 columns (note: missing UPDATED_AT in schema, has 25 total).
+        Time slot availability by style - 26 columns.
         
         Args:
-            data_rows: List of tuples containing style time data (25 columns)
+            data_rows: List of tuples containing style time data (26 columns)
         """
         if not data_rows:
             logger.info("No style time data to process")
@@ -602,8 +606,8 @@ class OracleConnector:
                     START_1, END_1, END_DAYS_1, STATUS_1, START_2, END_2, END_DAYS_2,
                     STATUS_2, START_3, END_3, END_DAYS_3, STATUS_3, START_4, END_4,
                     END_DAYS_4, STATUS_4, VALID_DAYS, HOLIDAYS_ONLY_IF_VALID_DAY,
-                    MAPPED_TIME_ID, CREATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25)"""
+                    MAPPED_TIME_ID, CREATED_AT, UPDATED_AT)
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, TO_TIMESTAMP(:25, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:26, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -635,7 +639,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_STYLE_PRICES (TIME_ID, DEFAULT_PRICE, HOLIDAY, SATURDAY, SUNDAY, MONDAY,
                     TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, TO_TIMESTAMP(:11, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:12, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -664,7 +668,7 @@ class OracleConnector:
                     TAX_EXEMPT, MAX_OVERLAPPING_RENTALS, FRONTEND_QTY_LIMIT,
                     USE_STRIPED_BACKGROUND, BACKEND_AVAILABLE_DAYS, FRONTEND_AVAILABLE_DAYS,
                     MAX_SAME_DEPARTURES, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, TO_TIMESTAMP(:18, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:19, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -690,7 +694,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_ACCESSORY_OPTIONS (ID, ACCESSORY_ID, VALUE_TEXT, USE_STRIPED_BACKGROUND,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6)"""
+            VALUES (:1, :2, :3, :4, TO_TIMESTAMP(:5, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:6, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -716,7 +720,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_ACCESSORY_TIERS (ID, ACCESSORY_ID, MIN_HOURS, MAX_HOURS, PRICE, ACCESSORY_OPTION_ID,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8)"""
+            VALUES (:1, :2, :3, :4, :5, :6, TO_TIMESTAMP(:7, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:8, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -742,7 +746,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_BOOKING_ACCESSORIES (BOOKING_ID, ACCESSORY_ID, QTY, PRICE, PRICE_OVERRIDE,
                     ACCESSORY_OPTION_ID, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8)"""
+            VALUES (:1, :2, :3, :4, :5, :6, TO_TIMESTAMP(:7, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:8, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -774,7 +778,7 @@ class OracleConnector:
                     BOAT_DAMAGE_RESPONSIBILITY_DEDUCTION, MAX_PENDING_WAIT_LIST_ENTRIES,
                     FREE_ACCESSORIES, DESCRIPTION_TEXT, TERMS_TEXT, STATUS_TIER,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, TO_TIMESTAMP(:27, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:28, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -806,7 +810,7 @@ class OracleConnector:
                     MAX_SAME_DAY_PER_CUSTOMER, MAX_ACTIVE_PER_CUSTOMER,
                     DISABLE_CONSECUTIVE_PER_CUSTOMER, STATUS_COUPON, VALID_DAYS,
                     HOLIDAYS_ONLY_IF_VALID_DAY, VALID_STYLES, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, TO_DATE(:10, 'YYYY-MM-DD'), TO_DATE(:11, 'YYYY-MM-DD'), TO_DATE(:12, 'YYYY-MM-DD'), TO_DATE(:13, 'YYYY-MM-DD'), :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, TO_TIMESTAMP(:29, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:30, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -832,7 +836,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_POS_ITEMS (ID, LOCATION_ID, SKU, ITEM_NAME, COST, PRICE,
                     TAX_EXEMPT, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, TO_TIMESTAMP(:8, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:9, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -858,7 +862,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_POS_SALES (ID, LOCATION_ID, ADMIN_ID, CUSTOMER_NAME, SUB_TOTAL, TAX_1,
                     GRAND_TOTAL, AMOUNT_PAID, CREATED_AT, UPDATED_AT, DELETED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, TO_TIMESTAMP(:9, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:10, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:11, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -885,7 +889,7 @@ class OracleConnector:
         INSERT INTO STG_STELLAR_FUEL_SALES (ID, LOCATION_ID, ADMIN_ID, CUSTOMER_NAME, FUEL_TYPE, QTY,
                     PRICE, SUB_TOTAL, TIP, GRAND_TOTAL, AMOUNT_PAID,
                     CREATED_AT, UPDATED_AT, DELETED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, TO_TIMESTAMP(:12, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:13, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:14, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -913,7 +917,7 @@ class OracleConnector:
                     TIMEFRAME_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, DEPARTURE_DATE,
                     LENGTH_REQUESTED, WAIT_LIST_TIME, FULFILLED, FULFILLED_DATE,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, TO_DATE(:12, 'YYYY-MM-DD'), :13, :14, :15, TO_DATE(:16, 'YYYY-MM-DD'), TO_TIMESTAMP(:17, 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP(:18, 'YYYY-MM-DD HH24:MI:SS'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -940,7 +944,7 @@ class OracleConnector:
         INSERT INTO STG_STELLAR_CLOSED_DATES (ID, LOCATION_ID, CLOSED_DATE, ALLOW_BACKEND_DEPARTURES,
                     ALLOW_BACKEND_RETURNS, ALLOW_FRONTEND_DEPARTURES,
                     ALLOW_FRONTEND_RETURNS, CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)"""
+            VALUES (:1, :2, TO_DATE(:3, \'YYYY-MM-DD\'), :4, :5, :6, :7, TO_TIMESTAMP(:8, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:9, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -965,7 +969,7 @@ class OracleConnector:
         
         insert_sql = """
         INSERT INTO STG_STELLAR_HOLIDAYS (LOCATION_ID, HOLIDAY_DATE)
-            VALUES (:1, :2)"""
+            VALUES (:1, TO_DATE(:2, 'YYYY-MM-DD'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -991,7 +995,7 @@ class OracleConnector:
         insert_sql = """
         INSERT INTO STG_STELLAR_BLACKLISTS (ID, LOCATION_ID, FIRST_NAME, LAST_NAME, PHONE, CELL,
                     EMAIL, DL_NUMBER, NOTES, CREATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, TO_TIMESTAMP(:10, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -1023,7 +1027,7 @@ class OracleConnector:
                     FILTER_UNIT_TYPE_ENABLED, FILTER_UNIT_TYPE_NAME, FILTER_UNIT_TYPE_POSITION,
                     MIN_NIGHTS_MULTI_DAY, CALENDAR_BANNER_TEXT, DESCRIPTION_TEXT,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, TO_TIMESTAMP(:14, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:15, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)
@@ -1051,7 +1055,7 @@ class OracleConnector:
                     FRONTEND_POSITION, FEATURED, FILTERABLE, ICON, AMENITY_TYPE,
                     OPTIONS_TEXT, PREFIX_TEXT, SUFFIX_TEXT, DESCRIPTION_TEXT,
                     CREATED_AT, UPDATED_AT)
-            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)"""
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, TO_TIMESTAMP(:15, \'YYYY-MM-DD HH24:MI:SS\'), TO_TIMESTAMP(:16, \'YYYY-MM-DD HH24:MI:SS\'))"""
         
         try:
             self.cursor.executemany(insert_sql, data_rows)

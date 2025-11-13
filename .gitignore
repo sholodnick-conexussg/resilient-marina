@@ -18,3 +18,11 @@ venv/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# CSV data folders
+20251112050003/
+prod_resilient_*/
+
+# Runtime artifacts
+*.log
+stellar_failed_tables_*.txt

@@ -12,7 +12,6 @@ Processes all 29 Stellar tables including:
 
 import boto3
 import logging
-import gzip
 import csv
 import io
 import sys
@@ -30,6 +29,20 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
+# =============================================================================
+# DEPRECATED CSV PARSING FUNCTIONS
+# =============================================================================
+# NOTE: The functions below (parse_customers_data, parse_locations_data, etc.)
+# are NO LONGER USED. They were designed for CSV files in S3 subdirectories.
+# 
+# The new approach (as of Nov 2025) parses SQL dump files directly using
+# extract_table_data_from_sql() function. The SQL dumps are downloaded as
+# prod_resilient_YYYY-MM-DD_HH_MM-DATA.sql.gz files from the bucket root.
+#
+# These CSV parsing functions are kept for reference only and may be removed
+# in the future.
+# =============================================================================
 
 def parse_int(value):
     """Convert string to int or None if empty."""
@@ -49,6 +62,13 @@ def parse_float(value):
         return float(value)
     except (ValueError, TypeError):
         return None
+
+
+def parse_date(value):
+    """Convert date/timestamp string to None if empty (for Oracle TO_DATE/TO_TIMESTAMP)."""
+    if value == '' or value is None:
+        return None
+    return value
 
 
 def parse_customers_data(csv_content):
@@ -86,21 +106,21 @@ def parse_customers_data(csv_content):
             parse_int(row.get('numkids')),
             row.get('referrer'),
             row.get('services'),
-            row.get('dob'),
+            parse_date(row.get('dob')),
             row.get('dlstate'),
             row.get('dlcountry'),
             row.get('dlnumber'),
             row.get('notes'),
             row.get('internal_notes'),
             row.get('club_status'),
-            row.get('club_start_date'),
+            parse_date(row.get('club_start_date')),
             parse_int(row.get('club_use_recurring_billing')),
-            row.get('club_recurring_billing_start_date'),
+            parse_date(row.get('club_recurring_billing_start_date')),
             parse_float(row.get('balance')),
             row.get('bdrc'),
             parse_int(row.get('penalty_points')),
             parse_float(row.get('open_balance_threshold')),
-            row.get('club_end_date'),
+            parse_date(row.get('club_end_date')),
             row.get('cc_saved_name'),
             row.get('cc_saved_last4'),
             row.get('cc_saved_expiry'),
@@ -108,8 +128,8 @@ def parse_customers_data(csv_content):
             row.get('cc_saved_method_id'),
             row.get('cc_saved_address_id'),
             row.get('external_id'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} customer records")
@@ -135,7 +155,7 @@ def parse_locations_data(csv_content):
             parse_int(row.get('is_internal')),
             parse_int(row.get('is_canceled')),
             row.get('cancel_reason'),
-            row.get('cancel_date'),
+            parse_date(row.get('cancel_date')),
             parse_int(row.get('is_transferred')),
             row.get('transfer_destination'),
             row.get('module_type'),
@@ -143,8 +163,8 @@ def parse_locations_data(csv_content):
             row.get('zoho_id'),
             row.get('zcrm_id'),
             parse_int(row.get('is_active')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} location records")
@@ -161,8 +181,8 @@ def parse_seasons_data(csv_content):
             parse_int(row.get('id')),
             parse_int(row.get('location_id')),
             row.get('season_name'),
-            row.get('season_start'),
-            row.get('season_end'),
+            parse_date(row.get('season_start')),
+            parse_date(row.get('season_end')),
             row.get('status'),
             row.get('weekday_min_start_time'),
             row.get('weekday_max_start_time'),
@@ -176,8 +196,8 @@ def parse_seasons_data(csv_content):
             row.get('holiday_max_start_time'),
             row.get('holiday_min_end_time'),
             row.get('holiday_max_end_time'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} season records")
@@ -208,8 +228,8 @@ def parse_accessories_data(csv_content):
             parse_int(row.get('backend_available_days')),
             parse_int(row.get('frontend_available_days')),
             parse_int(row.get('max_same_departures')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} accessory records")
@@ -227,8 +247,8 @@ def parse_accessory_options_data(csv_content):
             parse_int(row.get('accessory_id')),
             row.get('value'),
             parse_int(row.get('use_striped_background')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} accessory option records")
@@ -248,8 +268,8 @@ def parse_accessory_tiers_data(csv_content):
             parse_int(row.get('max_hours')),
             parse_float(row.get('price')),
             parse_int(row.get('accessory_option_id')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} accessory tier records")
@@ -277,8 +297,8 @@ def parse_amenities_data(csv_content):
             row.get('prefix'),
             row.get('suffix'),
             row.get('description'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} amenity records")
@@ -305,8 +325,8 @@ def parse_categories_data(csv_content):
             parse_int(row.get('min_nights_multi_day')),
             row.get('calendar_banner_text'),
             row.get('description'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} category records")
@@ -321,7 +341,7 @@ def parse_holidays_data(csv_content):
     for row in reader:
         data_rows.append((
             parse_int(row.get('location_id')),
-            row.get('holiday_date')
+            parse_date(row.get('holiday_date'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} holiday records")
@@ -413,10 +433,10 @@ def parse_bookings_data(csv_content):
             row.get('referrer_id'),
             parse_int(row.get('safety_reminder')),
             parse_int(row.get('deleted_admin_id')),
-            row.get('created_at'),
-            row.get('updated_at'),
-            row.get('finalized_at'),
-            row.get('deleted_at')
+            parse_date(parse_date(row.get('created_at'))),
+            parse_date(parse_date(row.get('updated_at'))),
+            parse_date(row.get('finalized_at')),
+            parse_date(parse_date(row.get('deleted_at')))
         ))
     
     logger.info(f"Parsed {len(data_rows)} booking records")
@@ -443,12 +463,12 @@ def parse_booking_boats_data(csv_content):
             row.get('status'),
             parse_float(row.get('price')),
             parse_int(row.get('price_override')),
-            row.get('signature_date'),
-            row.get('checkout_date'),
+            parse_date(row.get('signature_date')),
+            parse_date(row.get('checkout_date')),
             row.get('checkout_equipment'),
             row.get('checkout_notes'),
             parse_float(row.get('checkout_engine_hours')),
-            row.get('checkin_date'),
+            parse_date(row.get('checkin_date')),
             row.get('checkin_equipment'),
             row.get('checkin_notes'),
             parse_float(row.get('checkin_engine_hours')),
@@ -468,7 +488,7 @@ def parse_booking_boats_data(csv_content):
             parse_float(row.get('checkin_tax_2')),
             parse_float(row.get('checkin_total')),
             parse_int(row.get('queue_admin_id')),
-            row.get('queue_date'),
+            parse_date(row.get('queue_date')),
             parse_int(row.get('attendant_queue_admin_id')),
             parse_int(row.get('attendant_water_admin_id')),
             parse_int(row.get('boat_assigned')),
@@ -484,9 +504,9 @@ def parse_booking_boats_data(csv_content):
             row.get('dob'),
             row.get('contract_return_pdf'),
             row.get('contract_pdf'),
-            row.get('created_at'),
-            row.get('updated_at'),
-            row.get('deleted_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at')),
+            parse_date(row.get('deleted_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} booking boat records")
@@ -549,13 +569,13 @@ def parse_booking_payments_data(csv_content):
             row.get('cc_connect_type'),
             row.get('cc_connect_id'),
             row.get('cc_payout_id'),
-            row.get('cc_payout_date'),
+            parse_date(row.get('cc_payout_date')),
             row.get('external_charge_id'),
             parse_int(row.get('is_synced')),
             row.get('stripe_reader_id'),
-            row.get('created_at'),
-            row.get('updated_at'),
-            row.get('deleted_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at')),
+            parse_date(row.get('deleted_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} booking payment records")
@@ -575,8 +595,8 @@ def parse_booking_accessories_data(csv_content):
             parse_float(row.get('price')),
             parse_int(row.get('price_override')),
             parse_int(row.get('accessory_option_id')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} booking accessory records")
@@ -599,8 +619,8 @@ def parse_style_groups_data(csv_content):
             parse_float(row.get('safety_test_min_percent_pass')),
             parse_int(row.get('safety_test_expiration_days')),
             row.get('safety_video_link'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style group records")
@@ -710,8 +730,8 @@ def parse_styles_data(csv_content):
             parse_float(row.get('seasonal_buffer_peak_lower')),
             parse_float(row.get('seasonal_buffer_peak_upper')),
             row.get('billable_unit_type'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style records")
@@ -739,9 +759,9 @@ def parse_style_boats_data(csv_content):
             row.get('hp'),
             row.get('model'),
             row.get('type'),
-            row.get('purchased_date'),
+            parse_date(row.get('purchased_date')),
             parse_float(row.get('purchased_cost')),
-            row.get('sale_date'),
+            parse_date(row.get('sale_date')),
             parse_float(row.get('sale_price')),
             row.get('club_location'),
             row.get('dealer_name'),
@@ -751,19 +771,19 @@ def parse_style_boats_data(csv_content):
             row.get('boat_year_model'),
             row.get('motor_year_model'),
             row.get('motor_manufacturer_model'),
-            row.get('state_reg_date'),
-            row.get('state_reg_exp_date'),
+            parse_date(row.get('state_reg_date')),
+            parse_date(row.get('state_reg_exp_date')),
             parse_float(row.get('engine_purchased_cost')),
             row.get('backend_display'),
             parse_int(row.get('position')),
             row.get('status'),
-            row.get('service_start'),
-            row.get('service_end'),
+            parse_date(row.get('service_start')),
+            parse_date(row.get('service_end')),
             row.get('clean_status'),
             row.get('insurance_reg_no'),
             row.get('buoy_insurance_status'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(parse_date(row.get('created_at'))),
+            parse_date(parse_date(row.get('updated_at')))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style boat records")
@@ -784,8 +804,8 @@ def parse_customer_boats_data(csv_content):
             row.get('boat_number'),
             parse_float(row.get('length')),
             parse_float(row.get('width')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} customer boat records")
@@ -801,8 +821,8 @@ def parse_season_dates_data(csv_content):
         data_rows.append((
             parse_int(row.get('id')),
             parse_int(row.get('season_id')),
-            row.get('start_date'),
-            row.get('end_date')
+            parse_date(row.get('start_date')),
+            parse_date(row.get('end_date'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} season date records")
@@ -836,8 +856,8 @@ def parse_style_hourly_prices_data(csv_content):
             parse_float(row.get('max_price')),
             parse_float(row.get('min_hours')),
             parse_float(row.get('max_hours')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style hourly price records")
@@ -875,8 +895,8 @@ def parse_style_times_data(csv_content):
             row.get('valid_days'),
             parse_int(row.get('holidays_only_if_valid_day')),
             parse_int(row.get('mapped_time_id')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style time records")
@@ -900,8 +920,8 @@ def parse_style_prices_data(csv_content):
             parse_float(row.get('wednesday')),
             parse_float(row.get('thursday')),
             parse_float(row.get('friday')),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} style price records")
@@ -941,8 +961,8 @@ def parse_club_tiers_data(csv_content):
             row.get('description'),
             row.get('terms'),
             row.get('status'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} club tier records")
@@ -965,10 +985,10 @@ def parse_coupons_data(csv_content):
             parse_int(row.get('count_allowed')),
             parse_int(row.get('count_allowed_daily')),
             parse_int(row.get('count_used')),
-            row.get('rental_start'),
-            row.get('rental_end'),
-            row.get('coupon_start'),
-            row.get('coupon_end'),
+            parse_date(row.get('rental_start')),
+            parse_date(row.get('rental_end')),
+            parse_date(row.get('coupon_start')),
+            parse_date(row.get('coupon_end')),
             parse_float(row.get('min_departure_time')),
             parse_float(row.get('max_departure_time')),
             parse_float(row.get('min_return_time')),
@@ -984,8 +1004,8 @@ def parse_coupons_data(csv_content):
             row.get('valid_days'),
             parse_int(row.get('holidays_only_if_valid_day')),
             row.get('valid_styles'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} coupon records")
@@ -1006,8 +1026,8 @@ def parse_pos_items_data(csv_content):
             parse_float(row.get('cost')),
             parse_float(row.get('price')),
             row.get('tax_exempt'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} POS item records")
@@ -1029,9 +1049,9 @@ def parse_pos_sales_data(csv_content):
             parse_float(row.get('tax_1')),
             parse_float(row.get('grand_total')),
             parse_float(row.get('amount_paid')),
-            row.get('created_at'),
-            row.get('updated_at'),
-            row.get('deleted_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at')),
+            parse_date(row.get('deleted_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} POS sale records")
@@ -1056,9 +1076,9 @@ def parse_fuel_sales_data(csv_content):
             parse_float(row.get('tip')),
             parse_float(row.get('grand_total')),
             parse_float(row.get('amount_paid')),
-            row.get('created_at'),
-            row.get('updated_at'),
-            row.get('deleted_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at')),
+            parse_date(row.get('deleted_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} fuel sale records")
@@ -1083,13 +1103,13 @@ def parse_waitlists_data(csv_content):
             row.get('lastname'),
             row.get('email'),
             row.get('phone'),
-            row.get('departure'),
+            parse_date(row.get('departure')),
             row.get('length'),
             row.get('waitlist_time'),
             row.get('fulfilled'),
-            row.get('fulfilled_date'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('fulfilled_date')),
+            parse_date(parse_date(row.get('created_at'))),
+            parse_date(parse_date(row.get('updated_at')))
         ))
     
     logger.info(f"Parsed {len(data_rows)} waitlist records")
@@ -1105,13 +1125,13 @@ def parse_closed_dates_data(csv_content):
         data_rows.append((
             parse_int(row.get('id')),
             parse_int(row.get('location_id')),
-            row.get('closed_date'),
+            parse_date(row.get('closed_date')),
             row.get('allow_backend_departures'),
             row.get('allow_backend_returns'),
             row.get('allow_frontend_departures'),
             row.get('allow_frontend_returns'),
-            row.get('created_at'),
-            row.get('updated_at')
+            parse_date(row.get('created_at')),
+            parse_date(row.get('updated_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} closed date records")
@@ -1134,64 +1154,112 @@ def parse_blacklists_data(csv_content):
             row.get('email'),
             row.get('dl_number'),
             row.get('notes'),
-            row.get('created_at')
+            parse_date(row.get('created_at'))
         ))
     
     logger.info(f"Parsed {len(data_rows)} blacklist records")
     return data_rows
 
 
-def find_latest_data_file_in_s3(s3_client, bucket, prefix):
-    """Find the most recent .gz file in S3 bucket with given prefix."""
+def find_latest_data_file_in_s3(s3_client, bucket):
+    """
+    Find the most recent -DATA.sql.gz file in S3 bucket root.
+    Files are named like: prod_resilient_2025-10-01_16_03-DATA.sql.gz
+    """
     try:
-        response = s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        response = s3_client.list_objects_v2(Bucket=bucket)
         
         if 'Contents' not in response:
-            logger.warning(f"No files found in s3://{bucket}/{prefix}")
+            logger.warning(f"No files found in bucket: {bucket}")
             return None
         
-        gz_files = [obj for obj in response['Contents'] if obj['Key'].endswith('.gz')]
+        # Filter for -DATA.sql.gz files only
+        data_files = [obj for obj in response['Contents'] 
+                      if obj['Key'].endswith('-DATA.sql.gz')]
         
-        if not gz_files:
-            logger.warning(f"No .gz files found in s3://{bucket}/{prefix}")
+        if not data_files:
+            logger.warning(f"No -DATA.sql.gz files found in bucket: {bucket}")
             return None
         
-        gz_files.sort(key=lambda x: x['LastModified'], reverse=True)
-        latest_file = gz_files[0]['Key']
+        # Sort by last modified date (most recent first)
+        data_files.sort(key=lambda x: x['LastModified'], reverse=True)
+        latest_file = data_files[0]
         
-        logger.info(f"Found latest file: {latest_file}")
-        return latest_file
+        logger.info(f"Found latest DATA file: {latest_file['Key']}")
+        logger.info(f"  Last Modified: {latest_file['LastModified']}")
+        logger.info(f"  Size: {latest_file['Size']:,} bytes")
+        return latest_file['Key']
         
     except Exception as e:
-        logger.error(f"Error finding latest file: {e}")
+        logger.error(f"Error finding latest DATA file: {e}")
         return None
 
 
-def download_and_parse_stellar_table(s3_client, bucket, table_name, parser_func):
-    """Download Stellar table from S3, decompress, and parse CSV."""
-    prefix = f"{table_name}/"
+def extract_table_data_from_sql(sql_content, table_name):
+    """
+    Extract INSERT statements for a specific table from SQL dump.
+    Returns list of tuples containing the data rows.
+    """
+    import re
     
-    logger.info(f"\nProcessing table: {table_name.upper()}")
+    logger.info(f"Extracting data for table: {table_name.upper()}")
     
-    latest_key = find_latest_data_file_in_s3(s3_client, bucket, prefix)
-    if not latest_key:
-        return None
+    # Pattern to match INSERT INTO statements for this table
+    # Example: INSERT INTO `customers` VALUES (1,'John',...);
+    pattern = rf"INSERT INTO `{table_name}` VALUES\s*\((.*?)\);"
     
-    try:
-        logger.info(f"Downloading: s3://{bucket}/{latest_key}")
-        response = s3_client.get_object(Bucket=bucket, Key=latest_key)
+    matches = re.findall(pattern, sql_content, re.IGNORECASE | re.DOTALL)
+    
+    if not matches:
+        logger.warning(f"No INSERT statements found for table: {table_name}")
+        return []
+    
+    data_rows = []
+    for match in matches:
+        # Split by comma, but respect quotes and parentheses
+        # This is a simplified parser - may need enhancement
+        values = []
+        current_value = ""
+        in_quotes = False
+        paren_depth = 0
         
-        with gzip.GzipFile(fileobj=response['Body']) as gzipfile:
-            csv_content = gzipfile.read().decode('utf-8')
+        for char in match + ',':
+            if char == "'" and (not current_value or current_value[-1] != '\\'):
+                in_quotes = not in_quotes
+                current_value += char
+            elif char == '(' and not in_quotes:
+                paren_depth += 1
+                current_value += char
+            elif char == ')' and not in_quotes:
+                paren_depth -= 1
+                current_value += char
+            elif char == ',' and not in_quotes and paren_depth == 0:
+                # End of value
+                val = current_value.strip()
+                # Remove quotes and handle NULL
+                if val.upper() == 'NULL':
+                    values.append(None)
+                elif val.startswith("'") and val.endswith("'"):
+                    # Remove quotes and unescape
+                    values.append(val[1:-1].replace("\\'", "'").replace("\\\\", "\\"))
+                else:
+                    # Try to convert to int or float
+                    try:
+                        if '.' in val:
+                            values.append(float(val))
+                        else:
+                            values.append(int(val))
+                    except:
+                        values.append(val)
+                current_value = ""
+            else:
+                current_value += char
         
-        logger.info(f"Downloaded and decompressed {len(csv_content)} bytes")
-        
-        data_rows = parser_func(csv_content)
-        return data_rows
-        
-    except Exception as e:
-        logger.exception(f"Error processing {table_name}: {e}")
-        return None
+        if values:
+            data_rows.append(tuple(values))
+    
+    logger.info(f"Extracted {len(data_rows)} rows from {table_name}")
+    return data_rows
 
 
 def process_stellar_data_from_s3(
@@ -1205,8 +1273,15 @@ def process_stellar_data_from_s3(
 ):
     """
     Main Stellar data processing function.
-    Downloads gzipped DATA files from S3 and inserts into Oracle staging tables.
+    Downloads gzipped tarball from S3, extracts CSV files,
+    and inserts into Oracle staging tables.
+    
+    The backup file is a .tar.gz containing CSV files in data/ directory.
+    Example: prod_resilient_2025-11-12_09_52-DATA.sql.gz
     """
+    import tarfile
+    import gzip as gzip_module
+    
     logger.info("=" * 80)
     logger.info("STELLAR BUSINESS DATA PROCESSING - START")
     logger.info("=" * 80)
@@ -1223,10 +1298,36 @@ def process_stellar_data_from_s3(
         else:
             s3_client = boto3.client('s3', region_name=region)
         
-        logger.info(f"Connected to S3 in region: {region}, bucket: {bucket}")
+        logger.info(f"Connected to S3 region: {region}, bucket: {bucket}")
         
     except Exception as e:
         logger.exception(f"Failed to initialize S3 client: {e}")
+        raise
+    
+    # Find and download latest DATA file
+    latest_file = find_latest_data_file_in_s3(s3_client, bucket)
+    if not latest_file:
+        logger.error("No DATA file found in S3 bucket")
+        return
+    
+    try:
+        logger.info(f"Downloading: s3://{bucket}/{latest_file}")
+        response = s3_client.get_object(Bucket=bucket, Key=latest_file)
+        
+        # Decompress gzip
+        with gzip_module.GzipFile(fileobj=response['Body']) as gzipfile:
+            tar_content = gzipfile.read()
+        
+        logger.info(f"Downloaded and decompressed {len(tar_content):,} bytes")
+        
+        # Extract tarball
+        tar_like = io.BytesIO(tar_content)
+        tar = tarfile.open(fileobj=tar_like)
+        
+        logger.info(f"Tarball contains {len(tar.getnames())} files")
+        
+    except Exception as e:
+        logger.exception(f"Failed to download/extract tarball: {e}")
         raise
     
     # Initialize Oracle database
@@ -1237,36 +1338,49 @@ def process_stellar_data_from_s3(
         logger.exception(f"Failed to connect to Oracle: {e}")
         raise
     
-    # Define tables to process
+    # Define tables to process with their insert functions and parsers
     tables_to_process = [
         ('customers', parse_customers_data, db_connector.insert_customers),
         ('locations', parse_locations_data, db_connector.insert_locations),
         ('seasons', parse_seasons_data, db_connector.insert_seasons),
         ('accessories', parse_accessories_data, db_connector.insert_accessories),
-        ('accessory_options', parse_accessory_options_data, db_connector.insert_accessory_options),
-        ('accessory_tiers', parse_accessory_tiers_data, db_connector.insert_accessory_tiers),
+        ('accessory_options', parse_accessory_options_data,
+         db_connector.insert_accessory_options),
+        ('accessory_tiers', parse_accessory_tiers_data,
+         db_connector.insert_accessory_tiers),
         ('amenities', parse_amenities_data, db_connector.insert_amenities),
         ('categories', parse_categories_data, db_connector.insert_categories),
         ('holidays', parse_holidays_data, db_connector.insert_holidays),
         ('bookings', parse_bookings_data, db_connector.insert_bookings),
-        ('booking_boats', parse_booking_boats_data, db_connector.insert_booking_boats),
-        ('booking_payments', parse_booking_payments_data, db_connector.insert_booking_payments),
-        ('booking_accessories', parse_booking_accessories_data, db_connector.insert_booking_accessories),
-        ('style_groups', parse_style_groups_data, db_connector.insert_style_groups),
+        ('booking_boats', parse_booking_boats_data,
+         db_connector.insert_booking_boats),
+        ('booking_payments', parse_booking_payments_data,
+         db_connector.insert_booking_payments),
+        ('booking_accessories', parse_booking_accessories_data,
+         db_connector.insert_booking_accessories),
+        ('style_groups', parse_style_groups_data,
+         db_connector.insert_style_groups),
         ('styles', parse_styles_data, db_connector.insert_styles),
-        ('style_boats', parse_style_boats_data, db_connector.insert_style_boats),
-        ('customer_boats', parse_customer_boats_data, db_connector.insert_customer_boats),
-        ('season_dates', parse_season_dates_data, db_connector.insert_season_dates),
-        ('style_hourly_prices', parse_style_hourly_prices_data, db_connector.insert_style_hourly_prices),
-        ('style_times', parse_style_times_data, db_connector.insert_style_times),
-        ('style_prices', parse_style_prices_data, db_connector.insert_style_prices),
+        ('style_boats', parse_style_boats_data,
+         db_connector.insert_style_boats),
+        ('customer_boats', parse_customer_boats_data,
+         db_connector.insert_customer_boats),
+        ('season_dates', parse_season_dates_data,
+         db_connector.insert_season_dates),
+        ('style_hourly_prices', parse_style_hourly_prices_data,
+         db_connector.insert_style_hourly_prices),
+        ('style_times', parse_style_times_data,
+         db_connector.insert_style_times),
+        ('style_prices', parse_style_prices_data,
+         db_connector.insert_style_prices),
         ('club_tiers', parse_club_tiers_data, db_connector.insert_club_tiers),
         ('coupons', parse_coupons_data, db_connector.insert_coupons),
         ('pos_items', parse_pos_items_data, db_connector.insert_pos_items),
         ('pos_sales', parse_pos_sales_data, db_connector.insert_pos_sales),
         ('fuel_sales', parse_fuel_sales_data, db_connector.insert_fuel_sales),
         ('waitlists', parse_waitlists_data, db_connector.insert_waitlists),
-        ('closed_dates', parse_closed_dates_data, db_connector.insert_closed_dates),
+        ('closed_dates', parse_closed_dates_data,
+         db_connector.insert_closed_dates),
         ('blacklists', parse_blacklists_data, db_connector.insert_blacklists),
     ]
     
@@ -1274,31 +1388,80 @@ def process_stellar_data_from_s3(
     total_records = 0
     successful_tables = 0
     failed_tables = []
+    failed_tables_details = {}  # Track error details for each failed table
     
     for table_name, parser_func, insert_func in tables_to_process:
         try:
-            data_rows = download_and_parse_stellar_table(s3_client, bucket, table_name, parser_func)
+            logger.info(f"\nProcessing table: {table_name.upper()}")
+            
+            # Look for CSV file in tarball
+            csv_filename = f"data/{table_name}.csv"
+            try:
+                csv_file = tar.extractfile(csv_filename)
+                if csv_file is None:
+                    logger.warning(f"File not found in tarball: {csv_filename}")
+                    failed_tables.append(table_name)
+                    continue
+                
+                csv_content = csv_file.read().decode('utf-8', errors='ignore')
+                logger.info(f"Extracted {len(csv_content):,} bytes from {csv_filename}")
+                
+            except KeyError:
+                logger.warning(f"File not found in tarball: {csv_filename}")
+                failed_tables.append(table_name)
+                continue
+            
+            # Parse CSV content
+            data_rows = parser_func(csv_content)
             
             if data_rows:
                 staging_table = f"STG_STELLAR_{table_name.upper()}"
                 logger.info(f"Truncating {staging_table}...")
-                db_connector.cursor.execute(f"TRUNCATE TABLE {staging_table}")
+                db_connector.cursor.execute(
+                    f"TRUNCATE TABLE {staging_table}"
+                )
                 db_connector.connection.commit()
                 
                 insert_func(data_rows)
                 
                 total_records += len(data_rows)
                 successful_tables += 1
-                logger.info(f"Successfully processed {table_name}: {len(data_rows)} records")
+                logger.info(
+                    f"✅ Successfully processed {table_name}: "
+                    f"{len(data_rows)} records"
+                )
             else:
-                logger.warning(f"No data found for {table_name}")
+                logger.warning(f"No data rows parsed for {table_name}")
                 failed_tables.append(table_name)
+                failed_tables_details[table_name] = "No data rows in CSV file"
                 
         except Exception as e:
+            error_msg = str(e)
             logger.exception(f"Failed to process {table_name}: {e}")
             failed_tables.append(table_name)
+            
+            # Categorize the error for the report
+            if 'ORA-01843' in error_msg:
+                failed_tables_details[table_name] = "Date format error"
+            elif 'ORA-01400' in error_msg:
+                # Extract column name from error
+                import re
+                match = re.search(r'"([^"]+)"', error_msg)
+                col = match.group(1) if match else "unknown column"
+                failed_tables_details[table_name] = f"NULL constraint: {col}"
+            elif 'ORA-00932' in error_msg:
+                failed_tables_details[table_name] = "Data type mismatch"
+            elif 'ORA-01036' in error_msg:
+                failed_tables_details[table_name] = "Bind variable count mismatch"
+            else:
+                failed_tables_details[table_name] = error_msg[:100]
     
-    # Close connection
+    # Close tarball and connection
+    try:
+        tar.close()
+    except Exception as e:
+        logger.warning(f"Error closing tarball: {e}")
+    
     try:
         db_connector.cursor.close()
         db_connector.connection.close()
@@ -1310,7 +1473,10 @@ def process_stellar_data_from_s3(
     logger.info("\n" + "=" * 80)
     logger.info("STELLAR BUSINESS DATA PROCESSING - SUMMARY")
     logger.info("=" * 80)
-    logger.info(f"Successfully processed: {successful_tables}/{len(tables_to_process)} tables")
+    logger.info(
+        f"Successfully processed: {successful_tables}/"
+        f"{len(tables_to_process)} tables"
+    )
     logger.info(f"Total records loaded: {total_records}")
     
     if failed_tables:
@@ -1319,3 +1485,92 @@ def process_stellar_data_from_s3(
         logger.info("All tables processed successfully!")
     
     logger.info("=" * 80)
+    
+    # Save detailed failure report to file
+    if failed_tables_details:
+        from datetime import datetime
+        report_file = f"stellar_failed_tables_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        try:
+            with open(report_file, 'w') as f:
+                f.write("=" * 80 + "\n")
+                f.write("STELLAR TABLE IMPORT FAILURE REPORT\n")
+                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write("=" * 80 + "\n\n")
+                
+                f.write(f"Summary:\n")
+                f.write(f"  • Successful: {successful_tables}/{len(tables_to_process)} tables\n")
+                f.write(f"  • Failed: {len(failed_tables)}/{len(tables_to_process)} tables\n")
+                f.write(f"  • Total records loaded: {total_records:,}\n\n")
+                
+                # Categorize failures
+                data_quality = []
+                schema_issues = []
+                empty_data = []
+                other_errors = []
+                
+                for table, reason in failed_tables_details.items():
+                    if 'No data rows' in reason:
+                        empty_data.append((table, reason))
+                    elif 'NULL constraint' in reason or 'Bind variable' in reason or 'Data type' in reason:
+                        schema_issues.append((table, reason))
+                    elif 'Date format' in reason:
+                        data_quality.append((table, reason))
+                    else:
+                        other_errors.append((table, reason))
+                
+                f.write("=" * 80 + "\n")
+                f.write("FAILED TABLES BY CATEGORY\n")
+                f.write("=" * 80 + "\n\n")
+                
+                if data_quality:
+                    f.write("Data Quality Issues:\n")
+                    f.write("-" * 80 + "\n")
+                    for table, reason in data_quality:
+                        f.write(f"  • {table:25} → {reason}\n")
+                    f.write("\n")
+                
+                if schema_issues:
+                    f.write("Schema/Constraint Issues:\n")
+                    f.write("-" * 80 + "\n")
+                    for table, reason in schema_issues:
+                        f.write(f"  • {table:25} → {reason}\n")
+                    f.write("\n")
+                
+                if empty_data:
+                    f.write("Empty Datasets (No Data in CSV):\n")
+                    f.write("-" * 80 + "\n")
+                    for table, reason in empty_data:
+                        f.write(f"  • {table}\n")
+                    f.write("\n")
+                
+                if other_errors:
+                    f.write("Other Errors:\n")
+                    f.write("-" * 80 + "\n")
+                    for table, reason in other_errors:
+                        f.write(f"  • {table:25} → {reason}\n")
+                    f.write("\n")
+                
+                f.write("=" * 80 + "\n")
+                f.write("RECOMMENDED ACTIONS\n")
+                f.write("=" * 80 + "\n\n")
+                
+                if data_quality:
+                    f.write("1. Data Quality Issues:\n")
+                    f.write("   → Review CSV data for invalid date/time formats\n")
+                    f.write("   → Check for data that doesn't match expected patterns\n\n")
+                
+                if schema_issues:
+                    f.write("2. Schema/Constraint Issues:\n")
+                    f.write("   → Add default values in parse functions for NULL constraints\n")
+                    f.write("   → Verify column counts match between CSV and database\n")
+                    f.write("   → Check data types match between CSV and Oracle schema\n\n")
+                
+                if empty_data:
+                    f.write("3. Empty Datasets:\n")
+                    f.write("   → No action needed - these will process when data is available\n\n")
+                
+                f.write("=" * 80 + "\n")
+            
+            logger.info(f"📝 Detailed failure report saved to: {report_file}")
+        except Exception as e:
+            logger.warning(f"Could not write failure report: {e}")
