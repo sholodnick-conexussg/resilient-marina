@@ -155,6 +155,80 @@ class OracleConnector:
         self.connection.commit()
         logger.info(f"✅ Successfully truncated {len(staging_tables)} MOLO staging tables")
     
+    def merge_single_table(self, table_name):
+        """
+        Execute a single merge stored procedure immediately after data load.
+        
+        Args:
+            table_name (str): Name of the table (e.g., 'BOATS', 'CONTACTS', 'INVOICES')
+                            Will be converted to procedure name SP_MERGE_MOLO_{table_name}
+        
+        Returns:
+            dict: Merge statistics {'inserted': int, 'updated': int} or None if no OUT parameters
+        """
+        procedure_name = f'SP_MERGE_MOLO_{table_name.upper()}'
+        
+        try:
+            # Enable DBMS_OUTPUT to capture procedure logging
+            self.cursor.callproc("dbms_output.enable")
+            
+            # Check if procedure has OUT parameters (inserted_count, updated_count)
+            # Try calling with OUT parameters first
+            try:
+                inserted = self.cursor.var(int)
+                updated = self.cursor.var(int)
+                self.cursor.callproc(procedure_name, [inserted, updated])
+                
+                # Fetch DBMS_OUTPUT
+                line_var = self.cursor.var(str)
+                status_var = self.cursor.var(int)
+                while True:
+                    self.cursor.callproc("dbms_output.get_line", (line_var, status_var))
+                    if status_var.getvalue() != 0:
+                        break
+                    output_line = line_var.getvalue()
+                    if output_line:
+                        logger.info(f"  📋 {output_line}")
+                
+                self.connection.commit()
+                
+                result = {
+                    'inserted': inserted.getvalue(),
+                    'updated': updated.getvalue()
+                }
+                
+                logger.info(
+                    f"✅ {procedure_name}: "
+                    f"{result['inserted']} inserted, {result['updated']} updated"
+                )
+                
+                return result
+                
+            except Exception:
+                # Procedure doesn't have OUT parameters (MERGE style), call without params
+                self.cursor.callproc(procedure_name)
+                
+                # Fetch DBMS_OUTPUT
+                line_var = self.cursor.var(str)
+                status_var = self.cursor.var(int)
+                while True:
+                    self.cursor.callproc("dbms_output.get_line", (line_var, status_var))
+                    if status_var.getvalue() != 0:
+                        break
+                    output_line = line_var.getvalue()
+                    if output_line:
+                        logger.info(f"  📋 {output_line}")
+                
+                self.connection.commit()
+                logger.info(f"✅ {procedure_name}: Merge completed")
+                
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ Error executing {procedure_name}: {e}")
+            self.connection.rollback()
+            raise
+    
     def run_all_merges(self):
         """
         Execute the master stored procedure that merges all staging tables to data warehouse.
@@ -174,11 +248,25 @@ class OracleConnector:
         """
         logger.info("Executing stored procedure to merge all MOLO staging data to data warehouse...")
         try:
+            # Enable DBMS_OUTPUT to capture procedure logging
+            self.cursor.callproc("dbms_output.enable")
+            
             # Create cursor variable for OUT parameter
             stats_cursor = self.cursor.var(oracledb.DB_TYPE_CURSOR)
             
             # Call procedure with OUT parameter
             self.cursor.callproc('SP_RUN_ALL_MOLO_STELLAR_MERGES', [stats_cursor])
+            
+            # Fetch and log DBMS_OUTPUT from stored procedures
+            line_var = self.cursor.var(str)
+            status_var = self.cursor.var(int)
+            while True:
+                self.cursor.callproc("dbms_output.get_line", (line_var, status_var))
+                if status_var.getvalue() != 0:
+                    break
+                output_line = line_var.getvalue()
+                if output_line:
+                    logger.info(f"  📋 {output_line}")
             
             # Fetch merge statistics from cursor
             merge_stats = {}
@@ -424,7 +512,10 @@ class OracleConnector:
         try:
             self.cursor.executemany(insert_sql, data_rows)
             self.connection.commit()
-            logger.info(f"✅ Successfully merged {len(data_rows)} contact records")
+            logger.info(f"✅ Successfully inserted {len(data_rows)} contact records to staging")
+            
+            # Immediately merge to DW
+            self.merge_single_table('CONTACTS')
         except Exception as e:
             logger.exception(f"Error inserting contacts to staging: {e}")
             self.connection.rollback()
@@ -456,7 +547,10 @@ class OracleConnector:
         try:
             self.cursor.executemany(insert_sql, data_rows)
             self.connection.commit()
-            logger.info(f"✅ Successfully merged {len(data_rows)} boat records")
+            logger.info(f"✅ Successfully inserted {len(data_rows)} boat records to staging")
+            
+            # Immediately merge to DW
+            self.merge_single_table('BOATS')
         except Exception as e:
             logger.exception(f"Error inserting boats to staging: {e}")
             self.connection.rollback()
