@@ -15,6 +15,11 @@ BEGIN
             tgt.CODE = src.CODE,
             tgt.SYMBOL = src.SYMBOL,
             tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+        WHERE 
+            -- Only update if data has actually changed
+            NVL(tgt.NAME, '~') != NVL(src.NAME, '~')
+            OR NVL(tgt.CODE, '~') != NVL(src.CODE, '~')
+            OR NVL(tgt.SYMBOL, '~') != NVL(src.SYMBOL, '~')
     WHEN NOT MATCHED THEN
         INSERT (
             ID, NAME, CODE, SYMBOL,

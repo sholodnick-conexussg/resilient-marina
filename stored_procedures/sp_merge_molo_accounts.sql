@@ -14,6 +14,11 @@ BEGIN
             tgt.MARINA_LOCATION_ID = src.MARINA_LOCATION_ID,
             tgt.CONTACT_ID = src.CONTACT_ID,
             tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+        WHERE 
+            -- Only update if data has actually changed
+            NVL(tgt.ACCOUNT_STATUS_ID, -1) != NVL(src.ACCOUNT_STATUS_ID, -1)
+            OR NVL(tgt.MARINA_LOCATION_ID, -1) != NVL(src.MARINA_LOCATION_ID, -1)
+            OR NVL(tgt.CONTACT_ID, -1) != NVL(src.CONTACT_ID, -1)
     WHEN NOT MATCHED THEN
         INSERT (
             ID, ACCOUNT_STATUS_ID, MARINA_LOCATION_ID, CONTACT_ID,

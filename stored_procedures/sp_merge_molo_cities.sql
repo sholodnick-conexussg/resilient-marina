@@ -15,6 +15,11 @@ BEGIN
             tgt.STATE = src.STATE,
             tgt.COUNTRY = src.COUNTRY,
             tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+        WHERE 
+            -- Only update if data has actually changed
+            NVL(tgt.NAME, '~') != NVL(src.NAME, '~')
+            OR NVL(tgt.STATE, '~') != NVL(src.STATE, '~')
+            OR NVL(tgt.COUNTRY, -1) != NVL(src.COUNTRY, -1)
     WHEN NOT MATCHED THEN
         INSERT (
             ID, NAME, STATE, COUNTRY,

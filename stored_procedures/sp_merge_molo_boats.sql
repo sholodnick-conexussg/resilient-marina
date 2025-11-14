@@ -50,6 +50,46 @@ BEGIN
             tgt.SERIAL_NUMBER = src.SERIAL_NUMBER,
             tgt.REGISTRATION_EXPIRATION = src.REGISTRATION_EXPIRATION,
             tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+        WHERE 
+            -- Only update if data has actually changed
+            NVL(tgt.PHOTO, '~') != NVL(src.PHOTO, '~')
+            OR NVL(tgt.MAKE, '~') != NVL(src.MAKE, '~')
+            OR NVL(tgt.MODEL, '~') != NVL(src.MODEL, '~')
+            OR NVL(tgt.NAME, '~') != NVL(src.NAME, '~')
+            OR NVL(tgt.LOA, '~') != NVL(src.LOA, '~')
+            OR NVL(tgt.BEAM, '~') != NVL(src.BEAM, '~')
+            OR NVL(tgt.DRAFT, '~') != NVL(src.DRAFT, '~')
+            OR NVL(tgt.AIR_DRAFT, '~') != NVL(src.AIR_DRAFT, '~')
+            OR NVL(tgt.REGISTRATION_NUMBER, -1) != NVL(src.REGISTRATION_NUMBER, -1)
+            OR NVL(tgt.REGISTRATION_STATE, '~') != NVL(src.REGISTRATION_STATE, '~')
+            OR NVL(tgt.CREATION_TIME, TO_TIMESTAMP('1900-01-01', 'YYYY-MM-DD')) != NVL(src.CREATION_TIME, TO_TIMESTAMP('1900-01-01', 'YYYY-MM-DD'))
+            OR NVL(tgt.BOAT_TYPE_ID, -1) != NVL(src.BOAT_TYPE_ID, -1)
+            OR NVL(tgt.MARINA_LOCATION_ID, -1) != NVL(src.MARINA_LOCATION_ID, -1)
+            OR NVL(tgt.POWER_NEED_ID, -1) != NVL(src.POWER_NEED_ID, -1)
+            OR NVL(tgt.NOTES, '~') != NVL(src.NOTES, '~')
+            OR NVL(tgt.RECORD_STATUS_ID, -1) != NVL(src.RECORD_STATUS_ID, -1)
+            OR NVL(tgt.ASPNET_USER_ID, -1) != NVL(src.ASPNET_USER_ID, -1)
+            OR NVL(tgt.MAST_LENGTH, '~') != NVL(src.MAST_LENGTH, '~')
+            OR NVL(tgt.WEIGHT, '~') != NVL(src.WEIGHT, '~')
+            OR NVL(tgt.COLOR, '~') != NVL(src.COLOR, '~')
+            OR NVL(tgt.HULL_ID, -1) != NVL(src.HULL_ID, -1)
+            OR NVL(tgt.KEY_LOCATION_CODE, '~') != NVL(src.KEY_LOCATION_CODE, '~')
+            OR NVL(tgt.YEAR, '~') != NVL(src.YEAR, '~')
+            OR NVL(tgt.HASH_ID, -1) != NVL(src.HASH_ID, -1)
+            OR NVL(tgt.MOLO_API_PARTNER_ID, -1) != NVL(src.MOLO_API_PARTNER_ID, -1)
+            OR NVL(tgt.POWER_NEED1_ID, -1) != NVL(src.POWER_NEED1_ID, -1)
+            OR NVL(tgt.LAST_EDITED_DATE_TIME, TO_TIMESTAMP('1900-01-01', 'YYYY-MM-DD')) != NVL(src.LAST_EDITED_DATE_TIME, TO_TIMESTAMP('1900-01-01', 'YYYY-MM-DD'))
+            OR NVL(tgt.LAST_EDITED_USER_ID, -1) != NVL(src.LAST_EDITED_USER_ID, -1)
+            OR NVL(tgt.LAST_EDITED_MOLO_API_PARTNER_ID, -1) != NVL(src.LAST_EDITED_MOLO_API_PARTNER_ID, -1)
+            OR NVL(tgt.FILESTACK_ID, -1) != NVL(src.FILESTACK_ID, -1)
+            OR NVL(tgt.TONNAGE, '~') != NVL(src.TONNAGE, '~')
+            OR NVL(tgt.GALLON_CAPACITY, -1) != NVL(src.GALLON_CAPACITY, -1)
+            OR NVL(tgt.IS_ACTIVE, '~') != NVL(src.IS_ACTIVE, '~')
+            OR NVL(tgt.BOOKING_MERGING_DONE, '~') != NVL(src.BOOKING_MERGING_DONE, '~')
+            OR NVL(tgt.DECAL_NUMBER, -1) != NVL(src.DECAL_NUMBER, -1)
+            OR NVL(tgt.MANUFACTURER, '~') != NVL(src.MANUFACTURER, '~')
+            OR NVL(tgt.SERIAL_NUMBER, -1) != NVL(src.SERIAL_NUMBER, -1)
+            OR NVL(tgt.REGISTRATION_EXPIRATION, '~') != NVL(src.REGISTRATION_EXPIRATION, '~')
     WHEN NOT MATCHED THEN
         INSERT (
             ID, PHOTO, MAKE, MODEL, NAME, LOA, BEAM, DRAFT, AIR_DRAFT, REGISTRATION_NUMBER, REGISTRATION_STATE, CREATION_TIME, BOAT_TYPE_ID, MARINA_LOCATION_ID, POWER_NEED_ID, NOTES, RECORD_STATUS_ID, ASPNET_USER_ID, MAST_LENGTH, WEIGHT, COLOR, HULL_ID, KEY_LOCATION_CODE, YEAR, HASH_ID, MOLO_API_PARTNER_ID, POWER_NEED1_ID, LAST_EDITED_DATE_TIME, LAST_EDITED_USER_ID, LAST_EDITED_MOLO_API_PARTNER_ID, FILESTACK_ID, TONNAGE, GALLON_CAPACITY, IS_ACTIVE, BOOKING_MERGING_DONE, DECAL_NUMBER, MANUFACTURER, SERIAL_NUMBER, REGISTRATION_EXPIRATION,

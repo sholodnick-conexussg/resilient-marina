@@ -9,6 +9,8 @@ BEGIN
         UPDATE SET
             tgt.NAME = src.NAME,
             tgt.DW_LAST_UPDATED = CURRENT_TIMESTAMP
+        WHERE
+            NVL(tgt.NAME, '~') != NVL(src.NAME, '~')
     WHEN NOT MATCHED THEN
         INSERT (
             ID,
