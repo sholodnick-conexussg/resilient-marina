@@ -4,8 +4,13 @@
 -- ============================================================================
 CREATE OR REPLACE PROCEDURE SP_MERGE_MOLO_SLIPS
 IS
-    v_merged NUMBER := 0;
+    v_inserted NUMBER := 0;
+    v_updated NUMBER := 0;
+    v_timestamp TIMESTAMP := SYSTIMESTAMP;
 BEGIN
+    -- Store current timestamp for tracking
+    v_timestamp := SYSTIMESTAMP;
+    
     MERGE INTO DW_MOLO_SLIPS tgt
     USING STG_MOLO_SLIPS src
     ON (tgt.ID = src.ID)
@@ -48,7 +53,7 @@ BEGIN
             tgt.MAX_REVENUE = src.MAX_REVENUE,
             tgt.TRANSIENT_PRICE_ID = src.TRANSIENT_PRICE_ID,
             tgt.SEASONAL_PRICE_ID = src.SEASONAL_PRICE_ID,
-            tgt.DW_LAST_UPDATED = SYSTIMESTAMP
+            tgt.DW_LAST_UPDATED = v_timestamp
         WHERE (
             NVL(tgt.ID, -999) <> NVL(src.ID, -999) OR
             NVL(tgt.NAME, '~NULL~') <> NVL(src.NAME, '~NULL~') OR
@@ -97,14 +102,26 @@ BEGIN
         )
         VALUES (
             src.ID, src.NAME, src.TYPE, src.RECOMMENDED_LOA, src.RECOMMENDED_BEAM, src.RECOMMENDED_DRAFT, src.RECOMMENDED_AIR_DRAFT, src.MAXIMUM_LOA, src.MAXIMUM_BEAM, src.MAXIMUM_DRAFT, src.MAXIMUM_AIR_DRAFT, src.MARINA_LOCATION_ID, src.PIER_ID, src.STATUS, src.START_DATE, src.END_DATE, src.DO_NOT_COUNT_IN_OCCUPANCY, src.ACTIVE, src.CREATION_DATE_TIME, src.CREATION_USER, src.SLIP_TYPE_ID, src.PAYMENT_PROCESSING_FEE, src.MANAGEMENT_FEE, src.OWNER_ID, src.PAYMENT_PROCESSING_FEE_TYPE_ID, src.MANAGEMENT_FEE_TYPE_ID, src.OVERRIDE_OCCUPANCY_LOA, src.HASH_ID, src.MAINTENANCE_FEE, src.SVG_ID, src.ASSESSMENT, src.LOAN, src.ORDER_COLUMN, src.SIGN_NAME, src.MAX_WEIGHT, src.MAX_REVENUE, src.TRANSIENT_PRICE_ID, src.SEASONAL_PRICE_ID,
-            SYSTIMESTAMP,
-            SYSTIMESTAMP
+            v_timestamp,
+            v_timestamp
         );
     
-    v_merged := SQL%ROWCOUNT;
+    -- Count records that were updated (DW_LAST_UPDATED = current timestamp and > DW_LAST_INSERTED)
+    SELECT COUNT(*)
+    INTO v_updated
+    FROM DW_MOLO_SLIPS
+    WHERE DW_LAST_UPDATED = v_timestamp
+    AND DW_LAST_UPDATED > DW_LAST_INSERTED;
+    
+    -- Count records that were inserted (DW_LAST_INSERTED = current timestamp)
+    SELECT COUNT(*)
+    INTO v_inserted
+    FROM DW_MOLO_SLIPS
+    WHERE DW_LAST_INSERTED = v_timestamp;
+    
     COMMIT;
     
-    DBMS_OUTPUT.PUT_LINE('DW_MOLO_SLIPS: Merged ' || v_merged || ' records');
+    DBMS_OUTPUT.PUT_LINE('DW_MOLO_SLIPS: ' || v_inserted || ' inserted, ' || v_updated || ' updated');
     
 EXCEPTION
     WHEN OTHERS THEN
