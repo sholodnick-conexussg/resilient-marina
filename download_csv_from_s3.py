@@ -31,6 +31,8 @@ import io
 import json
 import logging
 import os
+import signal
+import sys
 import zipfile
 from datetime import datetime
 import smtplib
@@ -1172,7 +1174,15 @@ def parse_invoice_items_data(csv_content):
     invoice_items = []
     csv_reader = csv.DictReader(io.StringIO(csv_content))
     
+    row_count = 0
     for row in csv_reader:
+        row_count += 1
+        
+        # Log progress every 1000 rows
+        if row_count % 1000 == 0:
+            logger.info(f"  📊 Processing invoice item {row_count:,}...")
+            sys.stdout.flush()
+        
         try:
             invoice_item_data = (
                 safe_string(row.get('Id'), allow_null=False) or '',
@@ -1278,6 +1288,8 @@ def parse_invoice_items_data(csv_content):
             logger.warning(f"Problematic row data: {row}")
             continue
     
+    logger.info(f"✅ Parsed {len(invoice_items):,} invoice items total")
+    sys.stdout.flush()
     return invoice_items
 
 
@@ -3126,6 +3138,15 @@ def read_s3_zip_and_insert_to_db(
         error_count = 0
         table_record_counts = {}  # Track records per table like Stellar does
         
+        # Log all files and their sizes BEFORE processing
+        logger.info("\n📋 Files to process:")
+        for csv_name in extracted_csv_data.keys():
+            size_bytes = len(extracted_csv_data[csv_name])
+            size_mb = size_bytes / (1024 * 1024)
+            logger.info(f"   {csv_name:<30} {size_mb:>8.2f} MB")
+        logger.info("")
+        sys.stdout.flush()
+        
         for csv_name, csv_content in extracted_csv_data.items():
             logger.info(f"\n--- Processing {csv_name}.csv ---")
             
@@ -3224,10 +3245,19 @@ def read_s3_zip_and_insert_to_db(
                     
                     processed_count += 1
                 elif csv_name == 'InvoiceItemSet':
+                    logger.info(f"   File size: {len(csv_content):,} bytes")
+                    logger.info(f"   Starting InvoiceItemSet parse at {datetime.now().strftime('%H:%M:%S')}...")
+                    sys.stdout.flush()
+                    
                     parsed_data = parse_invoice_items_data(csv_content)
+                    
+                    logger.info(f"   Parse completed. Starting database insert at {datetime.now().strftime('%H:%M:%S')}...")
+                    sys.stdout.flush()
+                    
                     db.insert_invoice_items(parsed_data)
                     table_record_counts['INVOICE_ITEMS'] = len(parsed_data)
                     logger.info(f"✅ Processed {len(parsed_data)} invoice item records")
+                    sys.stdout.flush()
                     
                     processed_count += 1
                 elif csv_name == 'Transactions':
@@ -3969,23 +3999,23 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--region",
-        default=os.getenv("S3_REGION", "us-east-1"),
-        help="The AWS region of the bucket. (Env: S3_REGION)"
+        default="us-east-1",
+        help="The AWS region of the bucket"
     )
     parser.add_argument(
         "--db-user",
-        default=os.getenv("DB_USER", "API_USER"),
-        help="Oracle database username. (Env: DB_USER)"
+        default=None,
+        help="Oracle database username (overrides config.json)"
     )
     parser.add_argument(
         "--db-password",
-        default=os.getenv("DB_PASSWORD"),
-        help="Oracle database password. (Env: DB_PASSWORD)"
+        default=None,
+        help="Oracle database password (overrides config.json)"
     )
     parser.add_argument(
         "--db-dsn",
-        default=os.getenv("DB_DSN", "oax4504110443_low"),
-        help="Oracle database DSN. (Env: DB_DSN)"
+        default=None,
+        help="Oracle database DSN (overrides config.json)"
     )
     parser.add_argument(
         "--process-molo",
@@ -4030,49 +4060,29 @@ if __name__ == "__main__":
     logger.info("LOADING CONFIGURATION")
     logger.info("=" * 80)
     
-    # Try loading from config file first (local development)
+    # Load from config file only (ignore environment variables)
     config = load_config_file('config.json')
     
-    if config:
-        logger.info("✅ Loaded configuration from config.json")
-        # Extract credentials from config file
-        aws_access_key = config['aws'].get('access_key_id')
-        aws_secret_key = config['aws'].get('secret_access_key')
-        
-        # Use config file for database credentials, allow command-line override
-        db_user = args.db_user or config['database'].get('user', 'API_USER')
-        db_password = args.db_password or config['database'].get('password')
-        db_dsn = args.db_dsn or config['database'].get('dsn', 'oax4504110443_low')
-        
-        # Use config file for bucket names if not specified on command line
-        bucket = args.bucket if args.bucket != 'cnxtestbucket' else config.get('s3', {}).get('molo_bucket', 'cnxtestbucket')
-        stellar_bucket = args.stellar_bucket if args.stellar_bucket != 'resilient-ims-backups' else config.get('s3', {}).get('stellar_bucket', 'resilient-ims-backups')
-    else:
-        # Fallback to environment variables (for OCI/container deployments)
-        logger.warning("⚠️  config.json not found, using environment variables")
-        logger.info("📋 Loading credentials from environment variables or OCI Vault...")
-        
-        # Get OCI Vault secrets if in OCI environment
-        vault_secrets = get_oci_vault_secrets()
-        
-        if vault_secrets:
-            logger.info("✅ Loaded credentials from OCI Vault")
-            aws_access_key = vault_secrets.get('aws_access_key_id')
-            aws_secret_key = vault_secrets.get('aws_secret_access_key')
-            db_password = vault_secrets.get('db_password')
-        else:
-            logger.info("� Using environment variables for credentials")
-            aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
-            aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-            db_password = os.getenv('DB_PASSWORD')
-        
-        # Use environment variables or command-line args
-        db_user = args.db_user or os.getenv('DB_USER', 'API_USER')
-        db_dsn = args.db_dsn or os.getenv('DB_DSN', 'oax4504110443_low')
-        bucket = args.bucket or os.getenv('S3_BUCKET', 'cnxtestbucket')
-        stellar_bucket = args.stellar_bucket or os.getenv('STELLAR_S3_BUCKET', 'resilient-ims-backups')
+    if not config:
+        logger.critical("❌ Error: config.json file is required and must exist")
+        exit(1)
     
-    logger.info(f"�📂 MOLO S3 Bucket: {bucket}")
+    logger.info("✅ Loaded configuration from config.json")
+    
+    # Extract credentials from config file only
+    aws_access_key = config['aws'].get('access_key_id')
+    aws_secret_key = config['aws'].get('secret_access_key')
+    
+    # Use config file for database credentials, allow command-line override only
+    db_user = args.db_user or config['database'].get('user', 'API_USER')
+    db_password = args.db_password or config['database'].get('password')
+    db_dsn = args.db_dsn or config['database'].get('dsn', 'oax4504110443_low')
+    
+    # Use config file for bucket names if not specified on command line
+    bucket = args.bucket if args.bucket != 'cnxtestbucket' else config.get('s3', {}).get('molo_bucket', 'cnxtestbucket')
+    stellar_bucket = args.stellar_bucket if args.stellar_bucket != 'resilient-ims-backups' else config.get('s3', {}).get('stellar_bucket', 'resilient-ims-backups')
+    
+    logger.info(f"📂 MOLO S3 Bucket: {bucket}")
     logger.info(f"📂 Stellar S3 Bucket: {stellar_bucket}")
     logger.info(f"🗄️  Database: {db_user}@{db_dsn}")
     logger.info("✅ Configuration loaded successfully")
@@ -4081,15 +4091,15 @@ if __name__ == "__main__":
     # Validate required database credentials
     if not all([db_user, db_password, db_dsn]):
         logger.critical(
-            "❌ Error: Database credentials (DB_USER, DB_PASSWORD, DB_DSN) "
-            "are required in config.json or environment variables"
+            "❌ Error: Database credentials (user, password, dsn) "
+            "are required in config.json"
         )
         exit(1)
         
     if not all([aws_access_key, aws_secret_key]):
         logger.critical(
             "❌ Error: AWS credentials (access_key_id, secret_access_key) "
-            "are required in config.json or environment variables"
+            "are required in config.json"
         )
         exit(1)
     
@@ -4121,7 +4131,19 @@ if __name__ == "__main__":
         logger.info("\n" + "=" * 80)
         logger.info("STEP 1: Processing MOLO Data")
         logger.info("=" * 80)
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("MOLO processing exceeded 30 minute timeout")
+        
         try:
+            # Set 30 minute timeout for MOLO processing
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(1800)  # 30 minutes in seconds
+            
+            logger.info("⏱️  MOLO processing timeout set to 30 minutes")
+            sys.stdout.flush()
+            sys.stderr.flush()
+            
             molo_results = read_s3_zip_and_insert_to_db(
                 bucket,
                 args.s3_prefix,
@@ -4136,6 +4158,9 @@ if __name__ == "__main__":
                 validation_sample_size=args.validation_sample_size
             )
             
+            # Cancel alarm if completed successfully
+            signal.alarm(0)
+            
             if molo_results:
                 # Capture MOLO table-level statistics (like Stellar does)
                 molo_stats = molo_results.get('table_record_counts', {})
@@ -4145,16 +4170,34 @@ if __name__ == "__main__":
                     zip_files_processed.append(molo_results['zip_file'])
                 
                 logger.info("✅ MOLO data processing completed successfully")
+                sys.stdout.flush()
             else:
                 error_msg = "MOLO processing returned no results"
                 errors.append(error_msg)
                 has_errors = True
+                logger.warning(f"⚠️ {error_msg} - Continuing to Stellar processing...")
+                sys.stdout.flush()
                 
+        except TimeoutError as e:
+            signal.alarm(0)  # Cancel alarm
+            error_msg = f"MOLO processing timed out after 30 minutes at {datetime.now().strftime('%H:%M:%S')}"
+            logger.error(f"❌ {error_msg}")
+            logger.error("   Last file being processed may have caused the hang")
+            errors.append(error_msg)
+            has_errors = True
+            logger.info("⏭️  Continuing to Stellar processing despite MOLO timeout...")
+            sys.stdout.flush()
+            sys.stderr.flush()
+            
         except Exception as e:
+            signal.alarm(0)  # Cancel alarm
             error_msg = f"Error processing MOLO data: {str(e)}"
             logger.exception(f"❌ {error_msg}")
             errors.append(error_msg)
             has_errors = True
+            logger.info("⏭️  Continuing to Stellar processing despite MOLO error...")
+            sys.stdout.flush()
+            sys.stderr.flush()
     else:
         logger.info("\n⏭️  Skipping MOLO data processing (disabled)")
     

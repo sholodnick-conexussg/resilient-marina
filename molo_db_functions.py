@@ -47,6 +47,9 @@ class OracleConnector:
             password (str): Database password  
             dsn (str): Database data source name (connection string)
         """
+        # Debug: Log TNS_ADMIN before setup
+        logger.info(f"🔍 TNS_ADMIN before setup: {os.environ.get('TNS_ADMIN', 'NOT SET')}")
+        
         # Configure Oracle wallet for Autonomous Database
         self._setup_oracle_wallet()
         
@@ -68,16 +71,37 @@ class OracleConnector:
     
     def _setup_oracle_wallet(self):
         """Set up Oracle wallet environment for Autonomous Database."""
-        # Get absolute path to wallet directory
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        wallet_dir = os.path.join(script_dir, "wallet_demo")
+        # Check if we're in a container by looking for /.dockerenv or checking if Oracle Instant Client has wallet files
+        container_wallet = '/opt/oracle/instantclient/network/admin'
+        is_container = (os.path.exists('/.dockerenv') or 
+                       (os.path.exists(container_wallet) and 
+                        os.path.exists(os.path.join(container_wallet, 'cwallet.sso'))))
         
-        # Convert to absolute path and verify it exists
-        wallet_dir = os.path.abspath(wallet_dir)
-        
-        if os.path.exists(wallet_dir):
+        if is_container:
+            # Force container path
+            wallet_dir = container_wallet
+            os.environ['TNS_ADMIN'] = wallet_dir
+            logger.info(f"✅ Container detected - TNS_ADMIN forced to: {wallet_dir}")
+        elif 'TNS_ADMIN' in os.environ:
+            # Use existing TNS_ADMIN if set
+            wallet_dir = os.environ['TNS_ADMIN']
+            logger.info(f"✅ TNS_ADMIN already set to: {wallet_dir}")
+        else:
+            # Get absolute path to wallet directory (for local development)
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            wallet_dir = os.path.join(script_dir, "wallet_demo")
+            wallet_dir = os.path.abspath(wallet_dir)
             os.environ['TNS_ADMIN'] = wallet_dir
             logger.info(f"✅ TNS_ADMIN set to: {wallet_dir}")
+        
+        # Verify wallet directory exists
+        if os.path.exists(wallet_dir):
+            # List all files in wallet directory for debugging
+            try:
+                files_in_wallet = os.listdir(wallet_dir)
+                logger.info(f"📁 Files in wallet directory: {files_in_wallet}")
+            except Exception as e:
+                logger.warning(f"⚠️  Could not list wallet directory: {e}")
             
             # Verify wallet files exist
             required_files = ['cwallet.sso', 'tnsnames.ora', 'sqlnet.ora']
@@ -87,6 +111,15 @@ class OracleConnector:
                 logger.warning(f"⚠️  Missing wallet files: {missing_files}")
             else:
                 logger.info("✅ All required wallet files found")
+                
+            # Read and log tnsnames.ora content for debugging
+            try:
+                tnsnames_path = os.path.join(wallet_dir, 'tnsnames.ora')
+                with open(tnsnames_path, 'r') as f:
+                    tnsnames_content = f.read()
+                logger.info(f"📄 tnsnames.ora first 200 chars: {tnsnames_content[:200]}")
+            except Exception as e:
+                logger.warning(f"⚠️  Could not read tnsnames.ora: {e}")
         else:
             logger.error(f"❌ Wallet directory not found: {wallet_dir}")
             raise FileNotFoundError(f"Wallet directory not found: {wallet_dir}")
@@ -642,6 +675,8 @@ class OracleConnector:
         Args:
             data_rows (list): List of tuples containing invoice item data
         """
+        import sys
+        
         if not data_rows:
             return
         
@@ -690,12 +725,33 @@ class OracleConnector:
         """
         
         try:
-            self.cursor.executemany(insert_sql, data_rows)
-            self.connection.commit()
-            logger.info(f"✅ Successfully inserted {len(data_rows)} invoice item records")
+            # Process in batches of 5000 to avoid memory issues and show progress
+            batch_size = 5000
+            total_rows = len(data_rows)
+            
+            logger.info(f"  Inserting {total_rows:,} invoice items in batches of {batch_size:,}...")
+            sys.stdout.flush()
+            
+            for i in range(0, total_rows, batch_size):
+                batch = data_rows[i:i + batch_size]
+                batch_num = (i // batch_size) + 1
+                total_batches = (total_rows + batch_size - 1) // batch_size
+                
+                logger.info(f"  Inserting batch {batch_num}/{total_batches} ({len(batch):,} records)...")
+                sys.stdout.flush()
+                
+                self.cursor.executemany(insert_sql, batch)
+                self.connection.commit()
+                
+                logger.info(f"  ✅ Batch {batch_num}/{total_batches} committed")
+                sys.stdout.flush()
+            
+            logger.info(f"✅ Successfully inserted {total_rows:,} invoice item records")
+            sys.stdout.flush()
             
             # Execute merge procedure immediately after insert
             logger.info("Executing merge for INVOICE_ITEMS...")
+            sys.stdout.flush()
             self.merge_single_table('INVOICE_ITEMS')
             
         except Exception as e:
