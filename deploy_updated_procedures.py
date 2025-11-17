@@ -14,6 +14,8 @@ with open('config.json') as f:
 
 # List of procedures with updated conditional WHERE clause pattern
 UPDATED_PROCEDURES = [
+    'sp_merge_molo_accounts.sql',
+    'sp_merge_molo_boats.sql',
     'sp_merge_molo_contacts.sql',
     'sp_merge_molo_invoice_items.sql',
     'sp_merge_molo_invoices.sql',
